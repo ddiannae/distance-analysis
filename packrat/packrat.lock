@@ -1,6 +1,6 @@
 PackratFormat: 1.4
 PackratVersion: 0.4.8.1
-RVersion: 3.3.2
+RVersion: 3.6.1
 Repos: BioCsoft=https://bioconductor.org/packages/3.4/bioc,
     BioCann=https://bioconductor.org/packages/3.4/data/annotation,
     BioCexp=https://bioconductor.org/packages/3.4/data/experiment,
@@ -129,6 +129,12 @@ Package: stringi
 Source: CRAN
 Version: 1.4.3
 Hash: ed2a82fc7cc668c1345223d938cdfaf2
+
+Package: stringr
+Source: CRAN
+Version: 1.4.0
+Hash: 67da32dbb2a7a16f2ef124336358e54a
+Requires: glue, magrittr, stringi
 
 Package: tibble
 Source: CRAN

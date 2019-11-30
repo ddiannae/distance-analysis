@@ -53,18 +53,23 @@ getMIDistanceListByCondAndChrs <- function(types) {
   }
 }
 
-getMIDistanceListByCondAndChrs(c("tiroides"))
+#getMIDistanceListByCondAndChrs(c("tiroides"))
 
 getAllMIDistanceMeans <- function(binsize, types) {
   chrs <- c(as.character(1:22), "X")
+  
   for (type in types){
-    setwd(paste0("/labs/csbig/regulaciontrans/", type, "/intra"))
-    conds <- c("cancer")
+    cat("Working with type ", type, "\n")
+    setwd(paste0("/media/ddisk/transpipeline-data/", type, "-data/intra"))
+    #setwd(paste0("/labs/csbig/regulaciontrans/", type, "/intra"))
+    conds <- c("cancer", "healthy")
     conditiondfs <- lapply(X = conds, FUN = function(cond){
       cat("Working with condition ", cond, "\n")
+      dist.mi <- fread(file=paste0(cond, "-all-distance-mi.txt"), header = T,
+                          nThread = 5, sep = "\t")
       
       meansbych <- parallel::mclapply(X = chrs, mc.cores = 7,  mc.cleanup = FALSE, FUN = function(chr){
-        dist.mi.df <- read.delim(file=paste0(cond, "/chr_", chr, "_distance_mi.txt"), header = T)
+        dist.mi.df <- dist.mi[dist.mi$chr == chr, ]
         dist.mi.df <- dist.mi.df[order(dist.mi.df$distance), ]
         rownames(dist.mi.df) <- NULL
         dist.mi.df$bin <- ((as.numeric(rownames(dist.mi.df)) - 1)%/%binsize) + 1
@@ -86,4 +91,4 @@ getAllMIDistanceMeans <- function(binsize, types) {
   }
  
 #  
-# getAllMIDistanceMeans(100)
+getAllMIDistanceMeans(100, c("tiroides", "kidney", "colon"))

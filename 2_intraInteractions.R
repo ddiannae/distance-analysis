@@ -1,7 +1,7 @@
 library(data.table)
 
 getMIDistanceListByCondAndChrs <- function(types) {
-  annot <- read.delim("/labs/csbig/regulaciontrans/distance-analysis/Biomart_EnsemblG94_GRCh38_p12.txt", stringsAsFactors = F, 
+  annot <- read.delim("/media/ddisk/transpipeline-data/biomarts/Biomart_EnsemblG94_GRCh38_p12.txt", stringsAsFactors = F, 
                       col.names = c("ensemblID", "chr", "start", "end", "GC",  "type", "symbol") )
   annot <- annot[!is.na(annot$ensemblID), ]
   annot <- annot[!duplicated(annot$ensemblID), ]
@@ -11,7 +11,7 @@ getMIDistanceListByCondAndChrs <- function(types) {
   conditions <- c("healthy", "cancer")
   for(type in types) {
     cat("Working with type", type, "\n")
-    setwd(paste0("/labs/csbig/regulaciontrans/", type, "/networks"))
+    setwd(paste0("/media/ddisk/transpipeline-data/", type, "/networks"))
     
     for(cond in conditions) {
       cat("Working with condition", cond, "\n")
@@ -20,9 +20,9 @@ getMIDistanceListByCondAndChrs <- function(types) {
       MImatrix <- data.matrix(MImatrix)
       rownames(MImatrix) = colnames(MImatrix)
       annot.ok <- annot[colnames(MImatrix),]
-      condvals <- lapply(X = chrs, FUN = function(chr) {
-        cat("Working with chromosome", chr, "\n")
-        genes.annot <- annot.ok[annot.ok$chr == chr, ]
+      condvals <- lapply(X = chrs, FUN = function(c) {
+        cat("Working with chromosome", c, "\n")
+        genes.annot <- annot.ok[annot.ok$chr == c, ]
         genes <- genes.annot$ensemblID
         ngenes <- length(genes)
         chrvals <- parallel::mclapply(X = 1:(ngenes-1), mc.cores = 6,  mc.cleanup = T, FUN = function(i) {
@@ -38,8 +38,8 @@ getMIDistanceListByCondAndChrs <- function(types) {
           plyr::ldply(mivals)
         })
         chrdf <- plyr::ldply(chrvals)
-        chrdf$chr <- chr
-        write.table(chrdf, file =  paste0("../intra/", cond, "/chr-", chr, "-distance-mi.txt"), 
+        chrdf$chr <- c
+        write.table(chrdf, file =  paste0("../intra/", cond, "/chr-", c, "-distance-mi.txt"), 
                     row.names = F, col.names = T, sep = "\t", quote = F)  
         return(chrdf)
       })
@@ -53,14 +53,14 @@ getMIDistanceListByCondAndChrs <- function(types) {
   }
 }
 
-#getMIDistanceListByCondAndChrs(c("tiroides"))
+#getMIDistanceListByCondAndChrs(c("utero"))
 
 getAllMIDistanceMeans <- function(binsize, types) {
   chrs <- c(as.character(1:22), "X")
   
   for (type in types){
     cat("Working with type ", type, "\n")
-    setwd(paste0("/media/ddisk/transpipeline-data/", type, "-data/intra"))
+    setwd(paste0("/media/ddisk/transpipeline-data/", type, "/intra"))
     #setwd(paste0("/labs/csbig/regulaciontrans/", type, "/intra"))
     conds <- c("cancer", "healthy")
     conditiondfs <- lapply(X = conds, FUN = function(cond){
@@ -68,14 +68,14 @@ getAllMIDistanceMeans <- function(binsize, types) {
       dist.mi <- fread(file=paste0(cond, "-all-distance-mi.txt"), header = T,
                           nThread = 5, sep = "\t")
       
-      meansbych <- parallel::mclapply(X = chrs, mc.cores = 7,  mc.cleanup = FALSE, FUN = function(chr){
-        dist.mi.df <- dist.mi[dist.mi$chr == chr, ]
+      meansbych <- parallel::mclapply(X = chrs, mc.cores = 7,  mc.cleanup = FALSE, FUN = function(c){
+        dist.mi.df <- dist.mi[dist.mi$chr == c, ]
         dist.mi.df <- dist.mi.df[order(dist.mi.df$distance), ]
         rownames(dist.mi.df) <- NULL
         dist.mi.df$bin <- ((as.numeric(rownames(dist.mi.df)) - 1)%/%binsize) + 1
         dfmeans <- aggregate(cbind(distance, mi)~bin, data=dist.mi.df, FUN=mean, na.rm=TRUE)
         dfmeans$cond <- cond
-        dfmeans$ch <- chr
+        dfmeans$chr <- c
         return(dfmeans)
       })
       df <- plyr::ldply(meansbych)
@@ -91,4 +91,4 @@ getAllMIDistanceMeans <- function(binsize, types) {
   }
  
 #  
-getAllMIDistanceMeans(100, c("tiroides", "kidney", "colon"))
+getAllMIDistanceMeans(100, c("utero"))

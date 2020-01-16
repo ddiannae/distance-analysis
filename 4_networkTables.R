@@ -5,14 +5,14 @@ annot <- read.delim("/media/ddisk/transpipeline-data/biomarts/Biomart_EnsemblG94
                     col.names = c("ensemblID", "chr", "start", "end", "band"), stringsAsFactors = F)
 annot <- annot[!duplicated(annot$ensemblID), ]
 
-types <- c("kidney", "tiroides", "colon")
+types <- c("utero")
 for (type in types) {
   cat("Working with type", type, "\n")
   
   conds <- c("cancer", "healthy")
   net <- lapply(conds, function(cond){
     cat("Reading network ", cond, "\n")
-    network <- read.delim(paste0(type, "-data/networks/1e8/", type, "-", cond, "-min.sif"), 
+    network <- read.delim(paste0(type, "/networks/1e8/", type, "-", cond, "-min.sif"), 
                           stringsAsFactors = F)
     cat("Is not unsorted: ", !is.unsorted(rev(network$MI)), "\n")
     network <- network %>% arrange(desc(MI))
@@ -78,10 +78,10 @@ for (type in types) {
     vertices.cond <- vertices %>% 
       filter(vertices$ensemblID %in% net.cond$source | vertices$ensemblID %in% net.cond$target) 
     vertices.cond <- vertices.cond %>% select(-t1, -t2)
-    write.table(vertices.cond, file = paste0(type, "-data/networks/network-tables/",
+    write.table(vertices.cond, file = paste0(type, "/networks/network-tables/",
                                              type,"-", conds[i], "-vertices.tsv") , 
                 quote = F, row.names = F, col.names = T, sep = "\t")
-    write.table(net.cond, file = paste0(type, "-data/networks/network-tables/", 
+    write.table(net.cond, file = paste0(type, "/networks/network-tables/", 
                                         type ,"-", conds[i], "-interactions.tsv"),
                 quote = F, row.names = F, col.names = T, sep = "\t")
   }

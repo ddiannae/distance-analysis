@@ -4,76 +4,73 @@ library(ggthemes)
 library(dplyr)
 library(tidyr)
 
-setwd("/mnt/ddisk/transpipeline-data/breast-data/subtypes/")
+setwd("/media/ddisk/transpipeline-data/")
 
-conds <- c("healthy", "luma", "lumb", "basal", "her2")
+types <- c("utero")
 
-#### Save annotated networks
-
-mitables <- lapply(X = conds, FUN = function(network) {
-  cat("Reading network ", network, "\n")
-  MIvals <- fread(paste0("networks/aracne-cluster/1e8/13319/", network, ".sif"), 
-                  header = F, sep="\t", nThread = 1, col.names =  c("Source", "Target", "MI"))
+getMIDistribution <- function(types) {
+  conds <- c("healthy", "cancer")
+  colors <- c("#C7C7C7", "#B37700")
+  labels <- c( "Healthy", "Cancer")
+  names(colors) <- labels
   
-  colnames(annot) <-  c("Source", "Source.Chr", "Source.Start", "Source.End")
-  MIvals <- merge(annot, MIvals, by.x = "Source", by.y = "Source")
-  colnames(annot) <-  c("Target", "Target.Chr", "Target.Start", "Target.End")
-  MIvals <- merge(annot, MIvals, by.x = "Target", by.y = "Target")
-  MIvals$Inter <- MIvals$Target.Chr != MIvals$Source.Chr
-  MIvals$Cond <- network
-  write.table(MIvals, file = paste0("networks/aracne-cluster/1e8/13319/", network, "-13319-annotated.tsv"), 
-              sep ="\t",  row.names = F, quote = F)
-  return(MIvals)
-})
-
-
-#### Networks are in networks/aracne-cluster/1e8/13319/ o networks/aracne-cluster/1e8/13319/
-getMIDistribution <- function(conds, path) {
-  mitables <- lapply(X = conds, FUN = function(network) {
-    cat("Reading network ", network, "\n")
-    MIvals <- fread(paste0(path, "/", network, ".sif"), header = F, sep="\t", nThread = 1, col.names =  c("Source", "Target", "MI"))
-    MIvals$Cond <- network
-    MIvals
-  })
-  
-  DT <- rbindlist(mitables)
-  
-  p <- ggplot(DT, aes(x = MI, color = Cond)) + geom_density()
-  png("mi-distribution.png", width = 1500, height = 1500)
-  print(p)
-  dev.off()
-}
-
-load("rdata/annot.RData")
-annot <- annot[, c("EnsemblID", "Chr", "Start", "End")]
-
-getMIBox <- function(conds, path) {
-  mitables <- lapply(X = conds, FUN = function(network) {
-    cat("Reading network ", network, "\n")
-    MIvals <- fread(paste0("networks/aracne-cluster/1e8/13319/", network, ".sif"), 
-                    header = F, sep="\t", nThread = 1, col.names =  c("Source", "Target", "MI"))
+  for(type in types) {
+    mitables <- lapply(X = conds, FUN = function(cond) {
+      cat("Reading network ", cond, "\n")
+      MIvals <- fread(paste0(type, "/networks/1e8/", type, "-", cond, "-min.sif"), 
+                      header = T, sep="\t", nThread = 3)
+      MIvals$cond <- cond
+      MIvals
+    })
     
-    colnames(annot) <-  c("Source", "Source.Chr", "Source.Start", "Source.End")
-    MIvals <- merge(annot, MIvals, by.x = "Source", by.y = "Source")
-    colnames(annot) <-  c("Target", "Target.Chr", "Target.Start", "Target.End")
-    MIvals <- merge(annot, MIvals, by.x = "Target", by.y = "Target")
-    MIvals$Inter <- MIvals$Target.Chr != MIvals$Source.Chr
-    MIvals <- MIvals[, c("Source", "Target", "MI", "Inter")]
-    MIvals <- MIvals[!MIvals$Inter,  ]
-    MIvals$Cond <- network
-    maxMI <- max(MIvals$MI)
-    MIvals$NormMI <- MIvals$MI/maxMI
-    MIvals
-  })
-  
-  DT <- rbindlist(mitables)
-  p <- ggplot(DT, aes(x = Cond, y = NormMI,  fill = Cond)) + 
-        geom_boxplot() +
-        theme_minimal() +
-        scale_fill_tableau()
-  
-  png("mi-distribution.png", width = 1500, height = 1500)
-  print(p)
-  dev.off()
+    DT <- rbindlist(mitables)
+    DT$cond <- factor(DT$cond,   levels = conds, labels = labels)
+
+    p <- ggplot(DT) + 
+      geom_density(aes(x = MI, y=..scaled.., fill = cond, color = cond), alpha=1/2)  + 
+      xlab("Mutual Information") +
+      ylab("Density") +
+      scale_fill_manual(name = "Condition", values = colors) +
+      scale_color_manual(name = "Condition", values = colors) +
+      guides(color = FALSE) +
+      theme_minimal(base_size = 20) 
+    
+    png(paste0(type, "/figures/mi-density-min-network.png"), width = 750, height = 500)
+    print(p)
+    dev.off()  
+  }
 }
 
+getMIDistribution(types)
+
+getMIBox <- function(types) {
+  conds <- c("healthy", "cancer")
+  colors <- c("#C7C7C7", "#B37700")
+  labels <- c( "Healthy", "Cancer")
+  names(colors) <- labels
+  for(type in types) {
+    mitables <- lapply(X = conds, FUN = function(cond) {
+      cat("Reading network ", cond, "\n")
+      MIvals <- fread(paste0(type, "/networks/1e8/", type, "-", cond, "-min.sif"), 
+                      header = T, sep="\t", nThread = 3)
+      MIvals$cond <- cond
+      MIvals
+    })
+    
+    DT <- rbindlist(mitables)
+    DT$cond <- factor(DT$cond,   levels = conds, labels = labels)
+
+    p <- ggplot(DT, aes(x = cond, y = MI,  fill = cond)) + 
+      geom_boxplot() +
+      theme_minimal(base_size = 20) +
+      scale_fill_manual(name = "Condition", values = colors) +
+      scale_color_manual(name = "Condition", values = colors) +
+      xlab("") +
+      theme(legend.position = "none") +
+    png(paste0(type, "/figures/mi-boxplot-min-network.png"), width = 750, height = 750)
+    print(p)
+    dev.off()  
+  }
+}
+
+getMIBox(types)

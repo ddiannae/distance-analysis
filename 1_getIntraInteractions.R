@@ -1,7 +1,21 @@
 library(data.table)
 
-getMIDistanceListByCondAndChrs <- function(types) {
-  annot <- read.delim("/media/ddisk/transpipeline-data/biomarts/Biomart_EnsemblG94_GRCh38_p12.txt", stringsAsFactors = F, 
+# Intra-chromosomal interactions
+
+
+## Function that gets intra-chromosomal interaction pairs
+## calculates distance between each pair of genes in the form:
+## gene1[start] - gene2[start]
+## It requires an adjacency matrix with gene EnsemblIds as columns
+## A diagonal matrix would work
+## File structure required:
+## path
+##  /type
+##    /networks
+##      type-cond-matrix.adj
+##    /intra (results will be here)
+getMIDistanceListByCondAndChrs <- function(path, types, threads) {
+  annot <- read.delim(paste0(path, "biomarts/Biomart_EnsemblG94_GRCh38_p12.txt"), stringsAsFactors = F, 
                       col.names = c("ensemblID", "chr", "start", "end", "GC",  "type", "symbol") )
   annot <- annot[!is.na(annot$ensemblID), ]
   annot <- annot[!duplicated(annot$ensemblID), ]
@@ -11,12 +25,12 @@ getMIDistanceListByCondAndChrs <- function(types) {
   conditions <- c("healthy", "cancer")
   for(type in types) {
     cat("Working with type", type, "\n")
-    setwd(paste0("/media/ddisk/transpipeline-data/", type, "/networks"))
+    setwd(paste0(path, type, "/networks"))
     
     for(cond in conditions) {
       cat("Working with condition", cond, "\n")
       MImatrix <- fread(file = paste0(type, "-", cond, "-matrix.adj"), header = T, 
-                        sep = "\t", nThread = 5)
+                        sep = "\t", nThread = threads)
       MImatrix <- data.matrix(MImatrix)
       rownames(MImatrix) = colnames(MImatrix)
       annot.ok <- annot[colnames(MImatrix),]
@@ -25,8 +39,7 @@ getMIDistanceListByCondAndChrs <- function(types) {
         genes.annot <- annot.ok[annot.ok$chr == c, ]
         genes <- genes.annot$ensemblID
         ngenes <- length(genes)
-        chrvals <- parallel::mclapply(X = 1:(ngenes-1), mc.cores = 6,  mc.cleanup = T, FUN = function(i) {
-          #chrvals <- lapply(X = 1:(ngenes-1),  FUN = function(i) {
+        chrvals <- parallel::mclapply(X = 1:(ngenes-1), mc.cores = threads,  mc.cleanup = T, FUN = function(i) {
           gene1 <- genes[i]
           other.genes <- genes[(i+1):ngenes]
           mivals <- lapply(X = other.genes, 
@@ -39,8 +52,6 @@ getMIDistanceListByCondAndChrs <- function(types) {
         })
         chrdf <- plyr::ldply(chrvals)
         chrdf$chr <- c
-        write.table(chrdf, file =  paste0("../intra/", cond, "/chr-", c, "-distance-mi.txt"), 
-                    row.names = F, col.names = T, sep = "\t", quote = F)  
         return(chrdf)
       })
       rm(annot.ok)
@@ -53,15 +64,25 @@ getMIDistanceListByCondAndChrs <- function(types) {
   }
 }
 
-#getMIDistanceListByCondAndChrs(c("utero"))
+#getMIDistanceListByCondAndChrs("/media/ddisk/transpipeline-data/", c("utero"), 6)
 
-getAllMIDistanceMeans <- function(binsize, types) {
+
+## Function that gets the mean MI value for a set of gene-pairs
+## size of the set in binsize variable. 
+## Bins are sorted according to the distance between genes
+## It requires the files from getMIDistanceListByCondAndChrs
+## File structure required:
+## path
+##  /type
+##    /intra
+##      cond-all-distance-mi.txt
+##      /intra-fixed-bin-size (results will be here)
+getAllMIDistanceMeans <- function(path, binsize, types) {
   chrs <- c(as.character(1:22), "X")
   
   for (type in types){
     cat("Working with type ", type, "\n")
-    setwd(paste0("/media/ddisk/transpipeline-data/", type, "/intra"))
-    #setwd(paste0("/labs/csbig/regulaciontrans/", type, "/intra"))
+    setwd(paste0(path, type, "/intra"))
     conds <- c("cancer", "healthy")
     conditiondfs <- lapply(X = conds, FUN = function(cond){
       cat("Working with condition ", cond, "\n")
@@ -90,5 +111,4 @@ getAllMIDistanceMeans <- function(binsize, types) {
     }
   }
  
-#  
-getAllMIDistanceMeans(100, c("utero"))
+#getAllMIDistanceMeans("/media/ddisk/transpipeline-data/", 100, c("utero"))

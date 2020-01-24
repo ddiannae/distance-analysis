@@ -1,3 +1,7 @@
+### Manual process. 
+### Complete sif contains all possible interactions. 
+### The cutoff value is found by running aracne again 
+### with a p value = 1e-8
 library(data.table)
 setwd("/media/ddisk/transpipeline-data/utero/networks")
 

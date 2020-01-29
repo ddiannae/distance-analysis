@@ -1,3 +1,6 @@
+## Script to get MI density plot and MI boxplot for networks.
+## It currently works with the min networks in *.sif files
+## and it requires the files to have headers: source-MI-target
 library(data.table)
 library(ggplot2)
 library(ggthemes)

@@ -4,16 +4,14 @@
 library(data.table)
 library(ggplot2)
 library(ggthemes)
-library(dplyr)
-library(tidyr)
 
 setwd("/media/ddisk/transpipeline-data/")
 
-types <- c("utero")
+types <- c("utero", "kidney", "tiroides", "lung", "colon")
 
 getMIDistribution <- function(types) {
   conds <- c("healthy", "cancer")
-  colors <- c("#C7C7C7", "#B37700")
+  colors <- c("#e3a098", "#a32e27")
   labels <- c( "Healthy", "Cancer")
   names(colors) <- labels
   
@@ -48,7 +46,7 @@ getMIDistribution(types)
 
 getMIBox <- function(types) {
   conds <- c("healthy", "cancer")
-  colors <- c("#C7C7C7", "#B37700")
+  colors <- c("#e3a098", "#a32e27")
   labels <- c( "Healthy", "Cancer")
   names(colors) <- labels
   for(type in types) {

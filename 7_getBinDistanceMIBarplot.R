@@ -1,3 +1,9 @@
+## Script to get Distance vs MI barplot
+## 5Mb bins are used for the distance and the mean MI 
+## value for each bin is plotted. 
+## It requires the cond-all-distance-mi.txt files from 
+## the 1_getIntraInteractions script.
+## It is usally run in the server
 library(data.table)
 library(ggplot2)
 library(ggthemes)

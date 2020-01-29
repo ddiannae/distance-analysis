@@ -1,3 +1,6 @@
+## Script to get scatter Distance vs MI plot per chromosome. 
+## Mean distance  and mean MI values per bin are calculated in the 
+## 1_getIntraInteractions script. 
 library(data.table)
 library(ggplot2)
 library(grid)

@@ -5,14 +5,12 @@ library(data.table)
 library(ggplot2)
 library(grid)
 library(scales)
-library(plyr)
 library(ggthemes)
 library(RColorBrewer)
 
 setwd("/media/ddisk/transpipeline-data/")
 
-types <- c("utero", "lung")
-
+types <- c("utero", "kidney", "colon", "tiroides", "lung")
 
 getScatterByChr <- function(types) {
   chrs <- as.character(c(1:22, "X"))
@@ -25,7 +23,7 @@ getScatterByChr <- function(types) {
                               "6" ,"7" ,"X" ,"8" ,"9" ,"20","10","21")
   chromosomes.pal <- chromosomes.pal[chrs]
   conds <- c("healthy", "cancer")
-  colors <- c("#C7C7C7", "#B37700")
+  colors <- c("#e3a098", "#a32e27")
   labels <- c("Healthy", "Cancer")
   
   for(type in types) {

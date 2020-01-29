@@ -1,3 +1,6 @@
+## Script to get the files with the format required by the Circos tool
+## It needs the network-tables files to extract interctions and gene-positions
+## The tool is able to display only 25k interactions. 
 library(data.table)
 
 setwd("/media/ddisk/transpipeline-data/")

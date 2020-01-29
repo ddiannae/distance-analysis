@@ -5,12 +5,11 @@
 library(data.table)
 library(ggplot2)
 library(ggthemes)
-library(dplyr)
 
 getInterKariobandBoxplot <- function(types){
   
   conds <- c("healthy", "cancer")
-  colors <- c("#C7C7C7", "#B37700")
+  colors <- c("#e3a098", "#a32e27")
   labels <- c("Healthy", "Cancer")
   names(colors) <- labels
   
@@ -54,7 +53,7 @@ getInterKariobandBoxplot <- function(types){
   }
 }
 
-types <- c("utero")
+types <- c("utero", "kidney", "colon", "tiroides", "lung")
 getInterKariobandBoxplot(types)
 
 

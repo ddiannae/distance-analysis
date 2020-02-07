@@ -29,5 +29,4 @@ for(type in types) {
                            "-communities.tsv"), sep = "\t")
     
   })
-  
 }

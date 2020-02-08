@@ -15,7 +15,7 @@ for(type in types) {
   comms <- lapply(conds, function(cond) {
     comm_info <- fread(paste0("networks/network-tables/", type, "-", cond, 
                              "-communities-info.tsv"), sep = "\t")
-    comm_info <- comm_info %>% filter(size > 2)
+    comm_info <- comm_info %>% filter(order > 2)
     comm_info$cond <- cond
     return(comm_info)
   })

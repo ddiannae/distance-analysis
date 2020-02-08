@@ -8,6 +8,23 @@ library(dplyr)
 
 types <- c("utero", "kidney", "colon", "tiroides", "lung")
 
+getComInfo <- function(cmembership, network){
+  comp.info <- lapply(unique(cmembership), function(idc){
+    mem <- names(cmembership[cmembership == idc])
+    com <- induced.subgraph(network, mem)
+    prs <- page.rank(com)
+    chrs <- table(V(com)$chr)
+    return(data.frame(com_id = idc,
+                      pg_gene = names(which.max(prs$vector))[1], 
+                      chr = names(which.max(chrs))[1], order = length(V(com)), 
+                      size = length(E(com))))
+  })
+  comp.info <- plyr::compact(comp.info)
+  comp.info <- plyr::ldply(comp.info)
+  comp.info <- comp.info %>% arrange(desc(size))
+  return(comp.info)
+}
+
 for(type in types) {
   
   setwd(paste0("/media/ddisk/transpipeline-data/", type))
@@ -39,21 +56,4 @@ for(type in types) {
     fwrite(comm_info, paste0("networks/network-tables/", type, "-", cond, 
                            "-communities-info.tsv"), sep = "\t")
   })
-}
-
-getComInfo <- function(cmembership, network){
-  comp.info <- lapply(unique(cmembership), function(idc){
-    mem <- names(cmembership[cmembership == idc])
-    com <- induced.subgraph(network, mem)
-    prs <- page.rank(com)
-    chrs <- table(V(com)$chr)
-    return(data.frame(com_id = idc,
-                      pg_gene = names(which.max(prs$vector))[1], 
-                      chr = names(which.max(chrs))[1], order = length(V(com)), 
-                      size = length(E(com))))
-  })
-  comp.info <- plyr::compact(comp.info)
-  comp.info <- plyr::ldply(comp.info)
-  comp.info <- comp.info %>% arrange(desc(size))
-  return(comp.info)
 }

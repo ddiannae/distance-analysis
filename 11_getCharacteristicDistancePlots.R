@@ -5,27 +5,57 @@ library(dplyr)
 library(ggplot2)
 types <- c("utero", "kidney", "colon", "tiroides", "lung")
 
+fancy_scientific <- function(l) {
+  # turn in to character string in scientific notation
+  l <- format(l, scientific = TRUE)
+  # quote the part before the exponent to keep all the digits
+  l <- gsub("^(.*)e", "'\\1'e", l)
+  # turn the 'e+' into plotmath format
+  l <- gsub("e", "%*%10^", l)
+  # return this as an expression
+  parse(text=l)
+}
+
+dropLeadingZero <- function(l){
+  #cat(l)
+  lnew <- c()
+  for(i in l){
+    if(!is.na(i)) {
+      if(i==0){ #zeros stay zero
+        lnew <- c(lnew,"0")
+      } else if (i>1){ #above one stays the same
+        lnew <- c(lnew, as.character(i))
+      } else
+        lnew <- c(lnew, gsub("(?<![0-9])0+", "", i, perl = TRUE))
+        lnew <- sub("\\+0?", "", lnew)
+        lnew <- c(sub("e\\+", "e", lnew))
+    }else{
+      lnew <- c(lnew, "")
+    }
+  }
+  #cat(lnew)
+  as.character(lnew)
+}
+
 for(type in types) {
-  
-  setwd(paste0("/media/ddisk/transpipeline-data/", type))
   
   conds <- c("healthy", "cancer")
   comms <- lapply(conds, function(cond) {
-    gen_comm <- fread(file = paste0("networks/network-tables/", type, "-", cond, "-communities.tsv"), 
+    gen_comm <- fread(file = paste0("../regulaciontrans-data/", type, "/", type, "-", cond, "-louvain-communities.tsv"), 
                      header = T, sep = "\t")
-    interactions <- fread(file = paste0("networks/network-tables/", type, "-", cond, "-interactions.tsv"), 
-                      header = T, sep = "\t")
+    interactions <- fread(file = paste0("../regulaciontrans-data/", type, "/", type, "-", cond, "-interactions.tsv"), 
+                          header = T, sep = "\t")
     interactions <- interactions %>% filter(interaction_type == "Intra-Cytoband" | 
                                               interaction_type == "Inter-Cytoband")
     
-    vertices <- fread(file = paste0("networks/network-tables/", type, "-", cond, "-vertices.tsv"), 
-                          header = T, sep = "\t")
+    vertices <- fread(file = paste0("../regulaciontrans-data/", type, "/", type, "-", cond, "-vertices.tsv"), 
+                      header = T, sep = "\t")
     vertices <- vertices %>% filter(ensemblID %in% union(interactions$source, interactions$target))
     vertices <- vertices %>% inner_join(gen_comm) 
     
     comm_dist <- lapply(unique(gen_comm$community), function(idc){
       v_comm <- vertices %>% filter(community == idc)
-      if(nrow(v_comm) > 5) {
+      if(nrow(v_comm) > 2) {
         e_comm <- distinct(bind_rows(interactions %>% semi_join(v_comm, by = c("source" = "ensemblID")),
                                      interactions %>% semi_join(v_comm, by = c("target" = "ensemblID"))))
         mean_dist <- e_comm %>% summarise(mean(distance))  %>% unlist() %>% unname()
@@ -52,7 +82,7 @@ for(type in types) {
     ylab("Community diameter") +
     theme(legend.position = "none") 
   
-  png("figures/comm-diameter-boxplot-min-network.png", width = 750, height = 750)
+  png(paste0("../regulaciontrans-data/", type, "/","figures/comm-diameter-boxplot-network-2.png"), width = 750, height = 750)
   print(p)
   dev.off()  
   
@@ -63,11 +93,13 @@ for(type in types) {
     facet_wrap(~cond, nrow = 1) +
     scale_fill_manual(name = "Condition", values = colors) +
     scale_color_manual(name = "Condition", values = colors) +
+    scale_x_continuous(labels = dropLeadingZero) +
     ylab("Frequency") +
     xlab("Community diameter") +
-    theme(legend.position = "none")
+    theme(legend.position = "none",
+          axis.text.x = element_text(size = 20))
   
-  png("figures/comm-diameter-histogram-min-network.png", width = 1000, height = 500)
+  png(paste0("../regulaciontrans-data/", type, "/","figures/comm-diameter-histogram-network-2.png"), width = 1000, height = 500)
   print(p)
   dev.off()  
   
@@ -79,7 +111,7 @@ for(type in types) {
     ylab("Community mean distance") +
     theme(legend.position = "none") 
   
-  png("figures/comm-meandist-boxplot-min-network.png", width = 750, height = 750)
+  png(paste0("../regulaciontrans-data/", type, "/","figures/comm-meandist-boxplot-network-2.png"), width = 750, height = 750)
   print(p)
   dev.off()  
   
@@ -90,11 +122,12 @@ for(type in types) {
     facet_wrap(~cond, nrow = 1) +
     scale_fill_manual(name = "Condition", values = colors) +
     scale_color_manual(name = "Condition", values = colors) +
+    scale_x_continuous(labels = dropLeadingZero) +
     ylab("Frequency") +
     xlab("Community mean distance") +
-    theme(legend.position = "none")
+    theme(legend.position = "none", axis.text.x = element_text(size = 20))
   
-  png("figures/comm-meandist-histogram-min-network.png", width = 1000, height = 500)
+  png(paste0("../regulaciontrans-data/", type, "/","figures/comm-meandist-histogram-network-2.png"), width = 1000, height = 500)
   print(p)
   dev.off()  
 }

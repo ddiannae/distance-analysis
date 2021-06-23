@@ -27,33 +27,31 @@ getComInfo <- function(cmembership, network){
 
 for(type in types) {
   
-  setwd(paste0("/media/ddisk/transpipeline-data/", type))
-  
   conds <- c("healthy", "cancer")
   
   m <- lapply(conds, function(cond) {
-    interactions <- fread(file = paste0("networks/network-tables/", type, "-", cond, "-interactions.tsv"), 
+    interactions <- fread(file = paste0("../regulaciontrans-data/", type, "/", type, "-", cond, "-interactions.tsv"), 
                           header = T, sep = "\t")
     interactions <- interactions %>% filter(interaction_type == "Intra-Cytoband" | 
                                               interaction_type == "Inter-Cytoband")
     
-    vertices <- fread(file = paste0("networks/network-tables/", type, "-", cond, "-vertices.tsv"), 
+    vertices <- fread(file = paste0("../regulaciontrans-data/", type, "/", type, "-", cond, "-vertices.tsv"), 
                       header = T, sep = "\t")
     vertices <- vertices %>% filter(ensemblID %in% union(interactions$source, interactions$target))
     
     colnames(interactions)[1:2] <- c("from", "to")
     net <- graph_from_data_frame(interactions, 
                                  directed=F, vertices = vertices)
-    comm <- cluster_infomap(graph = net, nb.trials = 10)
+    comm <- cluster_louvain(graph = net)
     names(comm$membership) <- comm$names
     
     df_comm <- data.frame(comm$names, comm$membership)
     colnames(df_comm) <- c("ensemblID", "community")
-    fwrite(df_comm, paste0("networks/network-tables/", type, "-", cond, 
-                           "-communities.tsv"), sep = "\t")
+    fwrite(df_comm, paste0("../regulaciontrans-data/", type, "/", type, "-", cond, 
+                           "-louvain-communities.tsv"), sep = "\t")
     
     comm_info <- getComInfo(comm$membership, net)
-    fwrite(comm_info, paste0("networks/network-tables/", type, "-", cond, 
-                           "-communities-info.tsv"), sep = "\t")
+    fwrite(comm_info, paste0("../regulaciontrans-data/", type, "/", type, "-", cond, 
+                           "-louvain-communities-info.tsv"), sep = "\t")
   })
 }

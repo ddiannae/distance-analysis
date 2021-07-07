@@ -1,143 +1,92 @@
-## Snakefile for ASCAT2 files from GDC
-##
-## Tissue type just like in GDC, lowercase is fine
-### DONE_IMAGES = ["esophagus", "skin", "breast", "kidney","lung", "liver", "prostate", "pancreas", "bladder", "brain", "colorectal", "uterus", "thyroid"]  
-#
-#TISSUES = ["breast", "prostate", "pancreas", "bladder", "skin", "brain", "liver", "esophagus",  "lung", "kidney", "colorectal", "uterus", "thyroid"]
-#"bladder", "brain", "breast", "colorectal", "esophagus", "kidney", "liver", "lung", "pancreas", "prostate", "skin", "thyroid", "uterus"
-import glob
-TISSUES = ["bladder"]
-DATADIR ="/datos/ot/diana/regulacion-trans"
-INTERCUT=18168
-# Adjust the umber of cores according to the machine and number of tissues
-MCCORES = 75
-files = [] 
-for t in TISSUES:
-  ## Example:data/breast/manifests/breast-cancer-rna_counts.txt"
-  files.append(DATADIR+ "/" + t + "/network-tables/normal-interactions.tsv")
-  files.append(DATADIR+ "/" + t + "/network-tables/normal-vertices.tsv")
-  files.append(DATADIR+ "/" + t + "/network-tables/cancer-interactions.tsv")
-  files.append(DATADIR+ "/" + t + "/network-tables/cancer-vertices.tsv")
-  #files.append(DATADIR+"/" + t+ "/manifests/"+t+"-cancer-rna_counts.txt")
-  #files.append(DATADIR+"/" + t+ "/manifests/"+t+"-normal-rna_counts.txt")
-  #files.append(DATADIR+"/" + t + "/plots/normalization_plots.pdf")
-  #files.apped(DATADIR+ "/" + t + "/rdata/normalization_results.tsv")
+## Configfile
+configfile: "config.yaml"
 
-#network=glob_wildcards(DATADIR+"/{tissue}/{step1}_{step2}_{step3}_networks/{type}_network_{pval}.sif"),
-def getNetworkSif(wildcards):
-  return [file for file in glob.glob(DATADIR+"/" + wildcards["tissue"] + "/*_*_*_networks/" + wildcards["type"] + "_network_*.sif")]
+import glob
+ 
+files = [] 
+for t in config["tissues"]:
+  #files.append(config["datadir"]+ "/" + t + "/distance_plots/mi_boxplot_network_1e-8.png")
+  files.append(f'{config["datadir"]}/{t}/network_tables_{config["algorithm"]}/cancer_vertices_{config["intercut"]}.tsv')
+  files.append(f'{config["datadir"]}/{t}/network_tables_{config["algorithm"]}/normal_vertices_{config["intercut"]}.tsv')
+  #files.append(config["datadir"]+ "/" + t + "/distance_plots/comm_diameter_histogram_network_"+str(config["intercut"])+".png")
+#   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/normal_interactions_1e-8.tsv")
+#   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/cancer_interactions_1e-8.tsv")
+#   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/normal_interactions_"+str(config["intercut"])+".tsv")
+#   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/cancer_interactions_"+str(config["intercut"])+".tsv")
+
+print(files)
+def getMIMatrix(wildcards):
+  if config["algorithm"] == "aracne":
+  	return [file for file in glob.glob(config["datadir"]+"/" + wildcards["tissue"] + "/*_*_*_networks/" + wildcards["type"] + "_network_1.adj")]
+  elif config["algorithm"] == "infotheo":
+  	return [file for file in glob.glob(config["datadir"]+"/" + wildcards["tissue"] + "/*_*_*_mi/" + wildcards["type"] + "_mi_matrix.adj")]
 
 rule all:
   input:
     files
 
-rule get_min_networks:
+rule get_intra_comms_distance_plots:
   input:
-    DATADIR+"/{tissue}/network-tables/{type}-interactions.tsv"
+    inter_normal=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/normal_interactions_{cutoff}.tsv",
+    inter_cancer=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/cancer_interactions_{cutoff}.tsv",
+    ver_normal=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/normal_vertices_{cutoff}.tsv",
+    ver_cancer=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/cancer_vertices_{cutoff}.tsv",
+    comm_normal=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/normal_comm_{cutoff}.tsv",
+    comm_cancer=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/cancer_comm_{cutoff}.tsv",
   output:
-    DATADIR+"/{tissue}/network-tables/{type}-interactions-"+INTERCUT+".tsv"
+    expand(config["datadir"]+"/{{tissue}}/distance_plots/comm_{plotfactor}_{plottype}_network_{{cutoff}}.png", plotfactor=["diameter","meandistance"],plottype=["boxplot","histogram"])
   shell:
     """
-    head -n INTERCUT {wildcards.input} > {wildcards.output}
+    Rscript getDistancePlots.R {input.inter_normal} {input.ver_normal} {input.comm_normal} {input.inter_cancer} {input.ver_cancer} {input.comm_cancer} {config["datadir"]}/{wildcards.tissue}/distance_plots {wildcards.cutoff}
+    """
+
+rule get_intra_comms_plots:
+  input:
+    ci_normal=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/normal_comm-info_{cutoff}.tsv",
+    ci_cancer=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/cancer_comm-info_{cutoff}.tsv",
+  output:
+    expand(config["datadir"]+"/{{tissue}}/distance_plots/comm_{plotfactor}_{plottype}_network_{{cutoff}}.png", plotfactor=["order","size", "density"],plottype=["boxplot","histogram"])
+  shell:
+    """
+    Rscript getIntraCommunitiesPlots.R {input.ci_normal} {input.ci_cancer} {config["datadir"]}/{wildcards.tissue}/distance_plots {wildcards.cutoff}
+    """
+
+   
+rule get_intra_comms:
+  input:
+    interactions=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/{type}_interactions_{cutoff}.tsv",
+    vertices=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/{type}_vertices_{cutoff}.tsv"
+  output:
+    comms=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/{type}_comm_{cutoff}.tsv",
+    comm_info=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/{type}_comm-info_{cutoff}.tsv",
+  shell:
+    """
+    Rscript getIntraCommunities.R {input.interactions} {input.vertices} {output.comms} {output.comm_info}
+    """
+
+rule get_distribution_plots:
+  input:
+    normal=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/normal_interactions_{cutoff}.tsv",
+    cancer=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/cancer_interactions_{cutoff}.tsv"
+  output:
+    config["datadir"]+"/{tissue}/distance_plots/mi_boxplot_network_{cutoff}.png",
+    config["datadir"]+"/{tissue}/distance_plots/mi_density_network_{cutoff}.png"
+  shell:
+    """
+    mkdir -p {config["datadir"]}/{wildcards.tissue}/distance_plots
+    Rscript getMIDistributionPlots.R {input.normal} {input.cancer} {config["datadir"]}/{wildcards.tissue}/distance_plots {wildcards.cutoff}
     """
 
 rule get_network_tables:
   input:
-    network=getNetworkSif,
-    annot=DATADIR+"/{tissue}/rdata/annot.RData"
+    # It is not ok to use python code here because of snakemake's wildcards pattern matching 
+    network=getMIMatrix,
+    annot=config["datadir"]+"/{tissue}/rdata/annot.RData"
   output:
-    interactions=DATADIR+"/{tissue}/network-tables/{type}-interactions.tsv",
-    vertices=DATADIR+"/{tissue}/network-tables/{type}-vertices.tsv"
-  shell:
-    """
-    mkdir -p DATADIR/{wildcards.tissue}/network-tables
-    Rscript getNetworkTables.R {input.annot} {input.network} {output.interactions} {output.vertices}
-    """
+    config["datadir"] + '/{tissue}/network_tables_' + config["algorithm"] + '/{type}_interactions_' + str(config["intercut"]) + '.tsv',
+    config["datadir"] + '/{tissue}/network_tables_' + config["algorithm"] + '/{type}_vertices_' + str(config["intercut"]) + '.tsv'
+  run:
+    # It is ok to use python code here because all variables exist
+    shell(f'mkdir -p {config["datadir"]}/{wildcards.tissue}/network_tables_{config["algorithm"]}')
+    shell(f'Rscript getNetworkTables.R {input.annot} {input.network} {config["intercut"]} {config["datadir"]}/{wildcards.tissue}/network_tables_{config["algorithm"]} {config["mccores"]}')
     
-rule run_aracne_all:
-  input: 
-    matrix=DATADIR+"/{tissue}/rdata/{step1}_{step2}_{step3}_norm_cpm10_arsyn_{type}.tsv",
-    genelist=DATADIR+"/{tissue}/rdata/{step1}_{step2}_{step3}_norm_cpm10_genelist.txt"
-  output:
-    directory(DATADIR+"/{tissue}/{step1}_{step2}_{step3}_networks/{type}_adj_{pval}"),
-  shell:
-    """
-    export ARACNEHOME={ARACNEHOME}
-    mkdir -p {output}
-    python src/python/aracne-par.py {input.matrix} {input.genelist} {MCCORES} {wildcards.pval} {output} > {DATADIR}/{wildcards.tissue}/log/aracne_{wildcards.type}_{wildcards.pval}.log
-    """
-
-rule user_normalization:
-  input:
-    DATADIR+"/{tissue}/rdata/mean10_proteinCoding.RData"
-  output:
-    DATADIR+"/{tissue}/rdata/{step1}_{step2}_{step3}_norm_cpm10_arsyn.RData",
-    DATADIR+"/{tissue}/rdata/{step1}_{step2}_{step3}_norm_cpm10_arsyn_cancer.tsv",
-    DATADIR+"/{tissue}/rdata/{step1}_{step2}_{step3}_norm_cpm10_arsyn_normal.tsv",
-    DATADIR+"/{tissue}/rdata/{step1}_{step2}_{step3}_norm_cpm10_genelist.txt"
-  shell:
-    "Rscript src/userNormalization.R {wildcards.tissue} {DATADIR} {wildcards.step1} {wildcards.step2} {wildcards.step3} > {DATADIR}/{wildcards.tissue}/log/{wildcards.step1}_{wildcards.step2}_{wildcards.step3}normalization_plots.log" 
-
-rule normalization_plots:
-  input:
-    DATADIR+"/{tissue}/rdata/normalization_results.tsv"
-  output:
-    DATADIR+"/{tissue}/plots/normalization_plots.pdf"
-  shell:
-    "Rscript src/normalizationPlots.R {wildcards.tissue} {DATADIR} {MCCORES} > {DATADIR}/{wildcards.tissue}/log/normalization_plots.log" 
-
-rule normalization_test:
-  input:
-    DATADIR+"/{tissue}/rdata/mean10_proteinCoding.RData",
-  output:
-    DATADIR+"/{tissue}/rdata/normalization_results.tsv"
-  shell:
-    "Rscript src/normalizationTest.R {wildcards.tissue} {DATADIR} {MCCORES} > {DATADIR}/{wildcards.tissue}/log/normalization_test.log"
-
-rule filter_low_expression:
-  input:
-    DATADIR+"/{tissue}/rdata/raw_full.RData",
-    DATADIR+"/{tissue}/plots/pca_score_raw.png"
-  output:
-    DATADIR+"/{tissue}/rdata/mean10_proteinCoding.RData",
-  shell:
-    "Rscript src/filterLowExpression.R {wildcards.tissue} {DATADIR} > {DATADIR}/{wildcards.tissue}/log/filter_low.log"
-
-rule qc:
-  input:
-    DATADIR+"/{tissue}/rdata/raw_full.RData"
-  output:
-    DATADIR+"/{tissue}/plots/pca_score_raw.png"
-  shell:
-    "Rscript src/QC.R {wildcards.tissue} {DATADIR} > {DATADIR}/{wildcards.tissue}/log/qc.log"
-    
-## We need to run these two together because the output of the download_files
-## tasks depends on the manifest and there is no easy way to specify this on 
-## snakemake
-rule download_files_and_get_ascat_matrix:
-  input:
-    ## Manifest file
-    normal=DATADIR+"/{tissue}/manifests/{tissue}-normal-rna_counts.txt",
-    cancer=DATADIR+"/{tissue}/manifests/{tissue}-cancer-rna_counts.txt",
-  output: 
-    DATADIR+"/{tissue}/{tissue}-matrix.tsv",
-    DATADIR+"/{tissue}/{tissue}-samples.tsv",
-    DATADIR+"/{tissue}/rdata/raw_full.RData"
-  shell:
-    """
-    mkdir -p {DATADIR}/{wildcards.tissue}/raw/{wildcards.tissue}-normal-rna
-    mkdir -p {DATADIR}/{wildcards.tissue}/raw/{wildcards.tissue}-cancer-rna
-    ./bin/gdc-client download -d {DATADIR}/{wildcards.tissue}/raw/{wildcards.tissue}-normal-rna -m {input.normal} --retry-amount 3
-    ./bin/gdc-client download -d {DATADIR}/{wildcards.tissue}/raw/{wildcards.tissue}-cancer-rna -m {input.cancer} --retry-amount 3
-    Rscript src/getRawMatrices.R {wildcards.tissue} {DATADIR} > {DATADIR}/{wildcards.tissue}/log/get-matrix.log
-    """
-rule get_manifest:
-  output:
-    ## Example: data/breast/manifests/breast-cancer-rna_counts.txt"
-    DATADIR+"/{tissue}/manifests/{tissue}-{type}-rna_counts.txt"
-  shell:
-    """
-    mkdir -p {DATADIR}/{wildcards.tissue}/log
-    mkdir -p {DATADIR}/{wildcards.tissue}/manifests
-    python src/queryGDC.py {wildcards.tissue} {wildcards.type} {DATADIR}/{wildcards.tissue}/manifests false 
-    """

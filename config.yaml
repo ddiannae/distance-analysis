@@ -1,0 +1,6 @@
+mccores: 1
+intercut: 18000
+datadir: /datos/ot/diana/regulacion-trans
+algorithm: aracne
+tissues: ["uterus"]
+#"bladder", "brain", "breast", "colorectal", "esophagus", "kidney", "liver", "lung", "pancreas", "prostate", "skin", "thyroid", "uterus"

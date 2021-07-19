@@ -19,13 +19,7 @@ cat("Loading files\n")
 load(ANNOT)
 MImatrix <- fread(file = MATRIX, header = T,  sep = ",", nThread = MCCORES)
 MImatrix <- as.matrix(MImatrix)
-#max <- nrow(MImatrix)
-max <-  nrow(MImatrix)
-MIvals <- mclapply(X = 1:max, mc.cores = MCCORES, FUN = function(i) {
-  return(unlist(MImatrix[i, (i+1):ncol(MImatrix)], use.names = F))
-})
-
-MIvals <- unlist(MIvals)
+MIvals <- MImatrix[upper.tri(MImatrix)]
 MIvals <- sort(MIvals, decreasing = T)
 cutoff <- MIvals[INTERCUT]
 genes <- colnames(MImatrix)
@@ -51,7 +45,8 @@ MIvals <- merge(annot, MIvals)
 MIvals <- MIvals %>% mutate(inter = if_else(source_chr == target_chr,  F, T), 
                       interaction_type = if_else(inter == T, "Inter", "Intra"),
                       distance = if_else(inter == F, pmax(source_start, target_start) - 
-                                           pmin(source_start, target_start), as.integer(NaN)))
+                                           pmin(source_start, target_start), as.integer(-1)))
+
 targets <- MIvals %>% select(target_ensembl, target_chr, target_start, target_end, target_name)
 sources <- MIvals %>% select(source_ensembl, source_chr, source_start, source_end, source_name)
 colnames(targets) <- c("ensembl", "chr", "start", "end",  "symbol")

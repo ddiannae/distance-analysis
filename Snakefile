@@ -6,15 +6,12 @@ import glob
 files = [] 
 for t in config["tissues"]:
   #files.append(config["datadir"]+ "/" + t + "/distance_plots/mi_boxplot_network_1e-8.png")
-  files.append(f'{config["datadir"]}/{t}/network_tables_{config["algorithm"]}/cancer_vertices_{config["intercut"]}.tsv')
-  files.append(f'{config["datadir"]}/{t}/network_tables_{config["algorithm"]}/normal_vertices_{config["intercut"]}.tsv')
+  files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/all-bins-fixed-size.png')
+  #files.append(f'{config["datadir"]}/{t}/network_tables_{config["algorithm"]}/cancer_vertices_{config["intercut"]}.tsv')
   #files.append(config["datadir"]+ "/" + t + "/distance_plots/comm_diameter_histogram_network_"+str(config["intercut"])+".png")
-#   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/normal_interactions_1e-8.tsv")
-#   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/cancer_interactions_1e-8.tsv")
 #   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/normal_interactions_"+str(config["intercut"])+".tsv")
 #   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/cancer_interactions_"+str(config["intercut"])+".tsv")
 
-print(files)
 def getMIMatrix(wildcards):
   if config["algorithm"] == "aracne":
   	return [file for file in glob.glob(config["datadir"]+"/" + wildcards["tissue"] + "/*_*_*_networks/" + wildcards["type"] + "_network_1.adj")]
@@ -24,6 +21,45 @@ def getMIMatrix(wildcards):
 rule all:
   input:
     files
+
+rule get_bin_plots:
+  input:
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-fixed-size-all-"+str(config["sizebin"])+".tsv",
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-fixed-size-all-"+str(config["sizebin"])+".tsv",
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-fixed-distance-all-"+str(config["distbin"])+".tsv",
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-fixed-distance-all-"+str(config["distbin"])+".tsv"
+  output:
+    config["datadir"]+"/{tissue}/"+config["figdir"]+"/all-bins-fixed-distance.png",
+    config["datadir"]+"/{tissue}/"+config["figdir"]+"/all-bins-fixed-size.png"
+  run:
+    shell(f'Rscript getBinDistancePlots.R {config["datadir"]}/{wildcards.tissue}/{config["distdir"]}/ {config["datadir"]}/{wildcards.tissue}/{config["figdir"]}/ {config["distbin"]} {config["sizebin"]}')
+
+rule get_size_bin:
+  input:
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-all-distance-mi.tsv"
+  output:
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-fixed-size-bychr-"+str(config["sizebin"])+".tsv",
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-fixed-size-all-"+str(config["sizebin"])+".tsv"
+  run:
+    shell(f'Rscript getBinStats.R {input} {config["datadir"]}/{wildcards.tissue}/{config["distdir"]}/ {wildcards.type} {config["sizebin"]} "size" {config["mccores"]}')
+
+rule get_dist_bins:
+  input:
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-all-distance-mi.tsv"
+  output:
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-fixed-distance-bychr-"+str(config["distbin"])+".tsv",
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-fixed-distance-all-"+str(config["distbin"])+".tsv"
+  run:
+    shell(f'Rscript getBinStats.R {input} {config["datadir"]}/{wildcards.tissue}/{config["distdir"]}/ {wildcards.type} {config["distbin"]} "distance" {config["mccores"]}')
+
+rule get_intra_inter:
+  input:
+    network=getMIMatrix,
+    annot=config["datadir"]+"/{tissue}/rdata/annot.RData"
+  output:
+    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-all-distance-mi.tsv"
+  run:
+    shell(f'Rscript getIntraInteractions.R {input.annot} {input.network} {config["datadir"]}/{wildcards.tissue}/{config["distdir"]} {config["mccores"]}')
 
 rule get_intra_comms_distance_plots:
   input:
@@ -50,7 +86,6 @@ rule get_intra_comms_plots:
     """
     Rscript getIntraCommunitiesPlots.R {input.ci_normal} {input.ci_cancer} {config["datadir"]}/{wildcards.tissue}/distance_plots {wildcards.cutoff}
     """
-
    
 rule get_intra_comms:
   input:

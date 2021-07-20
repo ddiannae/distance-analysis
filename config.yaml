@@ -1,6 +1,10 @@
-mccores: 1
+mccores: 78
 intercut: 18000
 datadir: /datos/ot/diana/regulacion-trans
+distdir: distance_analysis
+figdir: distance_plots
+distbin: 1000000
+sizebin: 500
 algorithm: aracne
-tissues: ["uterus"]
+tissues: ["uterus", "thyroid", "prostate", "lung", "liver", "kidney"]
 #"bladder", "brain", "breast", "colorectal", "esophagus", "kidney", "liver", "lung", "pancreas", "prostate", "skin", "thyroid", "uterus"

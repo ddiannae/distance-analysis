@@ -2,35 +2,26 @@ library(data.table)
 library(readr)
 library(dplyr)
 
-args <- commandArgs(trailingOnly = T)
-
-if (length(args) < 4 ) {
-  stop("Incorrect number of arguments", call.=FALSE)
-} else {
-  ANNOT_RDATA <- args[1]
-  MATRIX <- args[2]
-  OUTFILE <- args[3]
-  MCCORES <- as.integer(args[4])
-}
+ANNOT_RDATA <- snakemake@params[["annot"]]
+MCCORES <- as.integer(snakemake@threads[[1]])
+TYPE <- snakemake@params[["type"]]
 
 load(ANNOT_RDATA)
 
 chrs <- c(as.character(1:22), "X", "Y")
-MImatrix <- fread(file = MATRIX, header = T,  sep = ",", nThread = MCCORES)
+MImatrix <- fread(file = snakemake@input[[1]], header = T,  sep = ",", nThread = MCCORES)
 MImatrix <- data.matrix(MImatrix)
 
-MImatrix <- rbind(MImatrix,  rep(NA, ncol(MImatrix)))
+#MImatrix <- rbind(MImatrix,  rep(NA, ncol(MImatrix)))
 
 rownames(MImatrix) = colnames(MImatrix)
 
 annot <- annot %>% filter(gene_id %in% colnames(MImatrix))
-rownames(annot) <- annot$gene_id
-cond <- strsplit(strsplit(MATRIX, split = "/")[[1]][8], split="_")[[1]][1]
 
 ## Intra-chromosomal interaction pairs
 ## calculates distance between each pair of genes in the form:
 ## gene1[start] - gene2[start]
-condvals <- lapply(X = chrs, FUN = function(ch) {
+distvals <- lapply(X = chrs, FUN = function(ch) {
   cat("Working with chromosome", ch, "\n")
   genes_annot <- annot %>% filter(chr == ch)
   genes <- genes_annot$gene_id
@@ -55,7 +46,7 @@ condvals <- lapply(X = chrs, FUN = function(ch) {
   }
 })
 
-conddf <- bind_rows(condvals)
-conddf$cond <- cond
+distvals <- bind_rows(distvals)
+distvals$cond <- TYPE
 cat("Saving file.\n")
-fwrite(conddf, file = OUTFILE, row.names = F, col.names = T, sep = "\t", nThread = MCCORES)
+fwrite(distvals, file = snakemake@output[[1]], row.names = F, col.names = T, sep = "\t", nThread = MCCORES)

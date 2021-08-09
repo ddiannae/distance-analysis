@@ -1,20 +1,12 @@
 library(readr)
 library(dplyr)
 
-args <- commandArgs(trailingOnly = T)
+COND <- snakemake@params[["type"]]
+BINSIZE <- snakemake@params[["sizebin"]]
+BINTYPE <- snakemake@params[["bintype"]]
+MCCORES <- snakemake@threads[[1]]
 
-if (length(args) < 4 ) {
-  stop("Incorrect number of arguments", call.=FALSE)
-} else {
-  DIST_DATA <- args[1]
-  OUTDIR <- args[2]
-  COND <- args[3]
-  BINSIZE <- args[4]
-  BINTYPE <- args[5]
-  MCCORES <- as.integer(args[6])
-}
-
-dist_df <- read_tsv(DIST_DATA, col_types = cols("chr" = col_character()))
+dist_df <- read_tsv(snakemake@input[[1]], col_types = cols("chr" = col_character()))
 chrs <- c(as.character(1:22), "X", "Y")
 
 ## Function that gets the mean MI value for a set of gene-pairs
@@ -44,7 +36,7 @@ meansbych <- parallel::mclapply(X = chrs, mc.cores = MCCORES,  mc.cleanup = FALS
 })
 
 meansbych <- bind_rows(meansbych)
-write_tsv(meansbych, paste0(OUTDIR, COND, "-fixed-", BINTYPE, "-bychr-", BINSIZE, ".tsv" ))
+write_tsv(meansbych, snakemake@output[["by_chr"]])
 
 dist_df <- dist_df %>% arrange(distance) 
 
@@ -63,4 +55,4 @@ allmeans <- dist_df %>% group_by(bin) %>% summarise(dist_mean = mean(distance), 
                                                     mi_min = min(mi))
 
 allmeans$cond <- COND
-write_tsv(allmeans, paste0(OUTDIR, COND, "-fixed-", BINTYPE, "-all-", BINSIZE, ".tsv" ))
+write_tsv(allmeans, snakemake@output[["all"]])

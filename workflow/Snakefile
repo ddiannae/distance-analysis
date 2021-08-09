@@ -42,24 +42,6 @@ rule get_bin_plots:
   run:
     shell(f'Rscript getBinDistancePlots.R {config["datadir"]}/{wildcards.tissue}/{config["distdir"]}/ {config["datadir"]}/{wildcards.tissue}/{config["figdir"]}/ {config["distbin"]} {config["sizebin"]} {wildcards.tissue}')
 
-rule get_size_bin:
-  input:
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-all-distance-mi.tsv"
-  output:
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-fixed-size-bychr-"+str(config["sizebin"])+".tsv",
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-fixed-size-all-"+str(config["sizebin"])+".tsv"
-  run:
-    shell(f'Rscript getBinStats.R {input} {config["datadir"]}/{wildcards.tissue}/{config["distdir"]}/ {wildcards.type} {config["sizebin"]} "size" {config["mccores"]}')
-
-rule get_dist_bins:
-  input:
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-all-distance-mi.tsv"
-  output:
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-fixed-distance-bychr-"+str(config["distbin"])+".tsv",
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/{type}-fixed-distance-all-"+str(config["distbin"])+".tsv"
-  run:
-    shell(f'Rscript getBinStats.R {input} {config["datadir"]}/{wildcards.tissue}/{config["distdir"]}/ {wildcards.type} {config["distbin"]} "distance" {config["mccores"]}')
-
 rule get_intra_comms_distance_plots:
   input:
     inter_normal=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/normal_interactions_{cutoff}.tsv",

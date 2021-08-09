@@ -4,7 +4,7 @@ library(dplyr)
 
 ANNOT_RDATA <- snakemake@params[["annot"]]
 MCCORES <- as.integer(snakemake@threads[[1]])
-TYPE <- snakemake@params[["type"]]
+COND <- snakemake@params[["cond"]]
 
 load(ANNOT_RDATA)
 
@@ -47,6 +47,6 @@ distvals <- lapply(X = chrs, FUN = function(ch) {
 })
 
 distvals <- bind_rows(distvals)
-distvals$cond <- TYPE
+distvals$cond <- COND
 cat("Saving file.\n")
 fwrite(distvals, file = snakemake@output[[1]], row.names = F, col.names = T, sep = "\t", nThread = MCCORES)

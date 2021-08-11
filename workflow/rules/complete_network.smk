@@ -1,4 +1,27 @@
-rule get_bin_plots:
+rule get_bin_chr_plots:
+    input:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/fitted-fixed-{bintype}-bychr-{binsize}.tsv"
+    output:
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/all-bins-fixed-{bintype}-{binsize}.png"
+    params:
+        tissue="{wildcards.tissue}"
+    log:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/get_{bintype}_plot_all_{binsize}.log" 
+    script:
+        "../scripts/getBinDistancePlot.R"
+
+rule get_bin_fitted:
+    input:
+        cancer=config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-fixed-{bintype}-all-{binsize}.tsv",
+        normal=config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-fixed-{bintype}-all-{binsize}.tsv"
+    output:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/fitted-{bintype}-all-{binsize}.tsv"
+    log:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/get_{bintype}_fitted_data_all_{binsize}.log" 
+    script:
+        "../scripts/getFittedData.R"
+
+rule get_bin_chr_plots:
     input:
         cancer=config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-fixed-{bintype}-bychr-{binsize}.tsv",
         normal=config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-fixed-{bintype}-bychr-{binsize}.tsv",
@@ -10,7 +33,7 @@ rule get_bin_plots:
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/get_{bintype}_plot_bychr_{binsize}.log" 
     script:
-        "../scripts/getBinDistancePlots.R"
+        "../scripts/getBinDistancByChrPlot.R"
 
 rule get_bin_chr_fitted:
     input:
@@ -21,7 +44,7 @@ rule get_bin_chr_fitted:
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/get_{bintype}_fitted_data_bychr_{binsize}.log" 
     script:
-        "../scripts/getFittedData.R"
+        "../scripts/getFittedDataByChr.R"
 
 rule get_bins:
     input:

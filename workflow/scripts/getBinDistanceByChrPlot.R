@@ -3,7 +3,7 @@ library(broom)
 library(ggthemes)
 
 files <- list(snakemake@input[["normal"]], snakemake@input[["cancer"]])
-fitted_data <- read_tsv(fitted_data, col_types = cols(chr = col_character()))
+fitted_data <- read_tsv(snakemake@input[["fitted"]], col_types = cols(chr = col_character()))
 TISSUE <- snakemake@params[["tissue"]]
 
 mi_data <- lapply(files, function(file) {

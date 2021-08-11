@@ -18,30 +18,6 @@ rule all:
   input:
     files
 
-rule get_bin_chr_plots:
-  input:
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-fixed-size-all-"+str(config["sizebin"])+".tsv",
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-fixed-size-all-"+str(config["sizebin"])+".tsv",
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-fixed-distance-all-"+str(config["distbin"])+".tsv",
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-fixed-distance-all-"+str(config["distbin"])+".tsv"
-  output:
-    config["datadir"]+"/{tissue}/"+config["figdir"]+"/bychr-bins-fixed-distance-"+str(config["distbin"])+".png",
-    config["datadir"]+"/{tissue}/"+config["figdir"]+"/bychr-bins-fixed-size-"+str(config["sizebin"])+".png"
-  run:
-    shell(f'Rscript getBinDistanceByChrPlots.R {config["datadir"]}/{wildcards.tissue}/{config["distdir"]}/ {config["datadir"]}/{wildcards.tissue}/{config["figdir"]}/ {config["distbin"]} {config["sizebin"]} {wildcards.tissue}')
-
-rule get_bin_plots:
-  input:
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-fixed-size-all-"+str(config["sizebin"])+".tsv",
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-fixed-size-all-"+str(config["sizebin"])+".tsv",
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-fixed-distance-all-"+str(config["distbin"])+".tsv",
-    config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-fixed-distance-all-"+str(config["distbin"])+".tsv"
-  output:
-    config["datadir"]+"/{tissue}/"+config["figdir"]+"/all-bins-fixed-distance-"+str(config["distbin"])+".png",
-    config["datadir"]+"/{tissue}/"+config["figdir"]+"/all-bins-fixed-size-"+str(config["sizebin"])+".png"
-  run:
-    shell(f'Rscript getBinDistancePlots.R {config["datadir"]}/{wildcards.tissue}/{config["distdir"]}/ {config["datadir"]}/{wildcards.tissue}/{config["figdir"]}/ {config["distbin"]} {config["sizebin"]} {wildcards.tissue}')
-
 rule get_intra_comms_distance_plots:
   input:
     inter_normal=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/normal_interactions_{cutoff}.tsv",

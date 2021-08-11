@@ -4,7 +4,7 @@ library(ggthemes)
 
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) < 4 ) {
+if (length(args) < 5 ) {
   stop("Incorrect number of arguments", call.=FALSE)
 } else {
   DIST_DIR <- args[1]
@@ -34,50 +34,45 @@ getFittedData <- function(filesuff) {
     unnest(c(meanf, maxf, minf), names_sep = "_") %>% select(-minf_bin, -maxf_bin) %>%
     rename(bin = meanf_bin,  mean = meanf_mi_mean, mean_fitted = meanf_.fitted, mean_resid = meanf_.resid,
            min = minf_mi_min, min_fitted = minf_.fitted, min_resid = minf_.resid,
-           max = maxf_mi_max, max_fitted = maxf_.fitted, max_resid = maxf_.resid) %>% ungroup()
-  sds <- mi_data %>% select(bin, cond, mi_sd) 
-  fitted_data <- fitted_data %>% inner_join(sds)
+           max = maxf_mi_max, max_fitted = maxf_.fitted, max_resid = maxf_.resid) %>% 
+    ungroup() %>% 
+    inner_join(mi_data %>% select(bin, cond, mi_sd, dist_mean))
+  
   write_tsv(fitted_data, paste0(DIST_DIR, "fitted-", filesuff))
+  
   return(fitted_data)
   
 }
 
-size_data <- getFittedData(paste0("fixed-size-all-", SIZE_BIN, ".tsv"))
-distance_data <- getFittedData(paste0("fixed-distance-all-", DIST_BIN, ".tsv"))
+getMIDistancePlot <- function(fitted_data) {
+  
+  g <- ggplot(fitted_data) + 
+    geom_line(aes(x = dist_mean/1e6, y = mean_fitted, color=cond)) +
+    geom_ribbon(aes(x = dist_mean/1e6, ymin = mean_fitted - mi_sd, ymax = mean_fitted + mi_sd, fill = cond), 
+                alpha = .2) +
+    facet_wrap(~cond, nrow = 1) + 
+    xlab("Distance (Mbp)") + 
+    ylab("Mutual Information") + 
+    theme_few(base_size = 25) +
+    scale_fill_manual(values = color_pal) + 
+    scale_color_manual(values = color_pal) + 
+    theme(legend.position = "none", strip.text.x = element_text(size = 30)) +
+    ggtitle(TISSUE)
+  
+  return(g)
+}
+
+fitted_size_data <- getFittedData(paste0("fixed-size-all-", SIZE_BIN, ".tsv"))
+fitted_distance_data <- getFittedData(paste0("fixed-distance-all-", DIST_BIN, ".tsv"))
 color_pal <- c("#e3a098", "#a32e27")
 TISSUE <- paste0(toupper(substring(TISSUE, 1, 1)), substring(TISSUE, 2))
 
-g <- ggplot(size_data) + 
-  geom_line(aes(x = bin, y = mean_fitted, color=cond)) +
-  geom_ribbon(aes(x = bin, ymin = mean_fitted - mi_sd, ymax = mean_fitted + mi_sd, fill = cond), alpha = .2) +
-  facet_wrap(~cond, nrow = 1) + 
-  xlab("Bin number") + 
-  ylab("Mutual Information") + 
-  theme_few(base_size = 25) +
-  scale_fill_manual(values = color_pal) + 
-  scale_color_manual(values = color_pal) + 
-  theme(legend.position = "none", strip.text.x = element_text(size = 30)) +
-  ggtitle(TISSUE)
-  
-
-png(paste0(FIG_DIR, "all-bins-fixed-size.png"), width = 1200, height = 600)
-print(g)
+p <- getMIDistancePlot(fitted_size_data)
+png(paste0(FIG_DIR, "all-bins-fixed-size-", SIZE_BIN, ".png"), width = 1200, height = 600)
+print(p)
 dev.off()  
 
-
-g <- ggplot(distance_data) + 
-  geom_line(aes(x = bin, y = mean_fitted, color=cond)) +
-  geom_ribbon(aes(x = bin, ymin = mean_fitted - mi_sd, ymax = mean_fitted + mi_sd, fill = cond), alpha = .2) +
-  facet_wrap(~cond, nrow = 1) + 
-  xlab("Distance (Mbp)") + 
-  ylab("Mutual Information") + 
-  theme_few(base_size = 25) +
-  scale_fill_manual(values = color_pal) + 
-  scale_color_manual(values = color_pal) + 
-  theme(legend.position = "none", strip.text.x = element_text(size = 30)) +
-  ggtitle(TISSUE)
-
-
-png(paste0(FIG_DIR, "all-bins-fixed-distance.png"), width = 1200, height = 600)
-print(g)
+p <- getMIDistancePlot(fitted_distance_data)
+png(paste0(FIG_DIR, "all-bins-fixed-distance-", DIST_BIN, ".png"), width = 1200, height = 600)
+print(p)
 dev.off()  

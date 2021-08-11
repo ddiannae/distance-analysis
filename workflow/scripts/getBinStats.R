@@ -2,7 +2,7 @@ library(readr)
 library(dplyr)
 
 COND <- snakemake@params[["cond"]]
-BINSIZE <- snakemake@params[["sizebin"]]
+BINSIZE <- snakemake@params[["binsize"]]
 BINTYPE <- snakemake@params[["bintype"]]
 MCCORES <- snakemake@threads[[1]]
 

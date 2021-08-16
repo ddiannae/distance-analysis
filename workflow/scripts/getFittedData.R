@@ -2,7 +2,7 @@ library(tidyverse)
 library(broom)
 library(ggthemes)
 
-files <- list(snakemake@input[["normal"]], snakemake@inout[["cancer"]])
+files <- list(snakemake@input[["normal"]], snakemake@input[["cancer"]])
 
 mi_data <- lapply(files, function(file) {
   read_tsv(file)

@@ -1,19 +1,27 @@
-library(tidyverse)
-library(broom)
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+
+library(readr)
+library(dplyr)
+library(ggplot2)
 library(ggthemes)
 
+cat("Loading data\n")
 files <- list(snakemake@input[["normal"]], snakemake@input[["cancer"]])
 fitted_data <- read_tsv(snakemake@input[["fitted"]], col_types = cols(chr = col_character()))
 TISSUE <- snakemake@params[["tissue"]]
+substring(TISSUE, 1, 1) <- toupper(substring(TISSUE, 1, 1))
 
 mi_data <- lapply(files, function(file) {
   read_tsv(file, col_types = cols(chr = col_character()))
 })
 
-mi_data <- bind_rows(mi_data) 
+mi_data <- bind_rows(mi_data)
+
+cat("Building plot\n")
 mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Healthy", "Cancer"))
 mi_data$chr <- factor(mi_data$chr, levels = as.character(c(1:22, "X", "Y")))
-
 
 chrs <- as.character(c(1:22, "X", "Y"))
 chr_pal <- c("#D909D1", "#0492EE", "#D2656C", "#106F35", "#5BD2AE", "#199F41", 
@@ -43,6 +51,7 @@ g <- ggplot() +
   scale_color_manual(values = chr_pal, name = "Chromosome") +
   ggtitle(TISSUE)
 
+cat("Saving plot\n")
 png(snakemake@output[[1]], width = 1000, height = 4500)
-plot(p)
+plot(g)
 dev.off()

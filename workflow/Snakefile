@@ -1,22 +1,18 @@
 ## Configfile
-configfile: "config.yaml"
+configfile: "config/config.yaml"
 
+include: "rules/setup.smk"
 include: "rules/common.smk"
 include: "rules/complete_network.smk"
 
-files = [] 
-for t in config["tissues"]:
-  #files.append(config["datadir"]+ "/" + t + "/distance_plots/mi_boxplot_network_1e-8.png")
-  files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/all-bins-fixed-size-{config["sizebin"]}.png')
-  files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/bychr-bins-fixed-size-{config["sizebin"]}.png')
-  #files.append(f'{config["datadir"]}/{t}/network_tables_{config["algorithm"]}/cancer_vertices_{config["intercut"]}.tsv')
-  #files.append(config["datadir"]+ "/" + t + "/distance_plots/comm_diameter_histogram_network_"+str(config["intercut"])+".png")
-#   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/normal_interactions_"+str(config["intercut"])+".tsv")
-#   files.append(config["datadir"]+ "/" + t + "/network_tables_{config['algorithm']}/cancer_interactions_"+str(config["intercut"])+".tsv")
+wildcard_constraints:
+    cond="normal|cancer",
+    bintype="size|distance",
+    binsize="\d+"
+
 
 rule all:
-  input:
-    files
+    input:get_output_files
 
 rule get_intra_comms_distance_plots:
   input:

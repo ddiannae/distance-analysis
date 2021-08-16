@@ -1,7 +1,12 @@
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+
 library(data.table)
 library(readr)
 library(dplyr)
 
+cat("Reading files \n")
 ANNOT_RDATA <- snakemake@params[["annot"]]
 MCCORES <- as.integer(snakemake@threads[[1]])
 COND <- snakemake@params[["cond"]]
@@ -9,13 +14,11 @@ COND <- snakemake@params[["cond"]]
 load(ANNOT_RDATA)
 
 chrs <- c(as.character(1:22), "X", "Y")
-MImatrix <- fread(file = snakemake@input[[1]], header = T,  sep = ",", nThread = MCCORES)
+MImatrix <- fread(file = snakemake@input[["network"]], header = T,  sep = ",", nThread = MCCORES)
 MImatrix <- data.matrix(MImatrix)
-
-#MImatrix <- rbind(MImatrix,  rep(NA, ncol(MImatrix)))
-
+MImatrix <- rbind(MImatrix,  rep(NA, ncol(MImatrix)))
 rownames(MImatrix) = colnames(MImatrix)
-
+cat("MI matrix with ", nrow(MImatrix), " rows and ", ncol(MImatrix), " columns loaded \n")
 annot <- annot %>% filter(gene_id %in% colnames(MImatrix))
 
 ## Intra-chromosomal interaction pairs
@@ -26,16 +29,17 @@ distvals <- lapply(X = chrs, FUN = function(ch) {
   genes_annot <- annot %>% filter(chr == ch)
   genes <- genes_annot$gene_id
   ngenes <- length(genes)
-  
+
   if(ngenes > 0) {
     chrvals <- parallel::mclapply(X = 1:(ngenes-1), mc.cores = MCCORES,  mc.cleanup = T, FUN = function(i) {
       gene1 <- genes[i]
+      s1 <- genes_annot %>% filter(gene_id == gene1) %>% pull(start)
       other.genes <- genes[(i+1):ngenes]
-      mivals <- lapply(X = other.genes, 
+      mivals <- lapply(X = other.genes,
                        FUN = function(gene2) {
-                         list(source = gene1, target = gene2, 
-                              distance = max(genes_annot[gene2, "start"], genes_annot[gene1, "start"]) - 
-                                min(genes_annot[gene1, "start"], genes_annot[gene2, "start"]), 
+                         s2 <- genes_annot %>% filter(gene_id == gene2) %>% pull(start)
+                         list(source = gene1, target = gene2,
+                              distance = max(s2, s1) - min(s2, s1),
                               mi = max(MImatrix[gene1, gene2], MImatrix[gene2, gene1],  na.rm = T))
                        })
       return(bind_rows(mivals))

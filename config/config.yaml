@@ -1,11 +1,10 @@
 mccores: 78
 intercut: 18000
-datadir: /home/diana/Workspace/regulaciontrans-data-server
+datadir: /datos/ot/diana/regulacion-trans
 distdir: distance_analysis
 figdir: distance_plots
 distbin: 100000
 sizebin: 50
 algorithm: aracne
-#tissues: ["uterus", "thyroid", "prostate", "lung", "liver", "kidney"]
-#"bladder", "brain", "breast", "colorectal", "esophagus", "kidney", "liver", "lung", "pancreas", "prostate", "skin", "thyroid", "uterus"
-tissues: ["kidney"]
+tissues: ["bladder", "brain",  "colorectal", "esophagus", "ovary", "pancreas", "prostate", "skin", "testis", "thyroid", "uterus"]
+  #tissues: ["bladder", "brain", "breast", "colorectal", "esophagus", "kidney", "liver", "lung", "pancreas", "prostate", "skin", "thyroid", "uterus"

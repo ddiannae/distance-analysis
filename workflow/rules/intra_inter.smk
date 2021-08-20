@@ -10,7 +10,7 @@ rule get_intra_inter_count:
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_get_intra_inter_count.log" 
     script:
-        "../scripts/getIntraInterCount.R"
+        "../scripts/intraInterCount.R"
 
 rule get_intra_plot:
     input:

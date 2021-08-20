@@ -3,11 +3,12 @@ configfile: "config/config.yaml"
 
 include: "rules/setup.smk"
 include: "rules/common.smk"
-include: "rules/complete_network.smk"
+include: "rules/intra_inter.smk"
+include: "rules/intra_distance.smk"
 
 wildcard_constraints:
     cond="normal|cancer",
-    bintype="size|distance",
+    bintype="size|distance|log|onek",
     binsize="\d+"
 
 

@@ -1,19 +1,18 @@
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+
 library(data.table)
 library(readr)
 library(parallel)
 library(dplyr)
 
-args = commandArgs(trailingOnly=TRUE)
 
-if (length(args) < 5 ) {
-  stop("Incorrect number of arguments", call.=FALSE)
-} else {
-  ANNOT <- args[1]
-  MATRIX <- args[2]
-  INTERCUT <- as.numeric(args[3])
-  OUTDIR <- args[4]
-  MCCORES <- as.numeric(args[5])
-}
+ANNOT <- snakemake@params[["annot"]]
+MATRIX <- snakemake@input[["mi_matrix"]]
+INTERCUT <- snakemake@params[["cut"]]
+MCCORES <- as.numeric(snakemake@threads[[1]])
+
 
 cat("Loading files\n")
 load(ANNOT)
@@ -59,6 +58,6 @@ MIvals <- MIvals %>%
   arrange(row_num) 
 
 cat("Saving files\n")
-write_tsv(vertices, file = paste0(OUTDIR, "/", cond, "_vertices_", INTERCUT, ".tsv"))
-write_tsv(MIvals, file = paste0(OUTDIR, "/", cond, "_interactions_",  INTERCUT, ".tsv"))
+write_tsv(vertices, file = snakemake@ouput[["vertices"]])
+write_tsv(MIvals, file = snakemake@output[["interactions"]])
 

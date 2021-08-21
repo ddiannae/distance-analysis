@@ -6,9 +6,9 @@ rule get_bin_distance_plots:
     params:
         tissue="{tissue}"
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/get_{bintype}_plot_{binsize}.log" 
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{bintype}_plot_{binsize}.log" 
     script:
-        "../scripts/getBinDistancePlot.R"
+        "../scripts/binDistancePlot.R"
 
 rule get_bin_fitted:
     input:
@@ -17,9 +17,9 @@ rule get_bin_fitted:
     output:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/fitted-bins-{bintype}-all-{binsize}.tsv"
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/get_fitted_bins_{bintype}_all_{binsize}.log" 
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/fitted_bins_{bintype}_all_{binsize}.log" 
     script:
-        "../scripts/getFittedData.R"
+        "../scripts/fittedData.R"
 
 rule get_bin_chr_plots:
     input:
@@ -31,9 +31,9 @@ rule get_bin_chr_plots:
     params:
         tissue="{tissue}"
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/get_{bintype}_plot_bychr_{binsize}.log" 
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{bintype}_plot_bychr_{binsize}.log" 
     script:
-        "../scripts/getBinDistanceByChrPlot.R"
+        "../scripts/binDistanceByChrPlot.R"
 
 rule get_bin_chr_fitted:
     input:
@@ -42,9 +42,9 @@ rule get_bin_chr_fitted:
     output:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/fitted-bins-{bintype}-bychr-{binsize}.tsv"
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/get_fitted_bins_{bintype}_bychr_{binsize}.log" 
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/fitted_bins_{bintype}_bychr_{binsize}.log" 
     script:
-        "../scripts/getFittedDataByChr.R"
+        "../scripts/fittedDataByChr.R"
 
 rule get_bins:
     input:
@@ -58,10 +58,10 @@ rule get_bins:
         cond="{cond}",
         bintype="{bintype}"
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_get_bins_{bintype}_{binsize}.log" 
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_bins_{bintype}_{binsize}.log" 
     threads: 8
     script:
-      "../scripts/getBinStats.R"
+      "../scripts/binStats.R"
 
 rule get_intra_inter:
     input:
@@ -70,11 +70,11 @@ rule get_intra_inter:
     output:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-all-distance-mi.tsv"
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_get_intra_interactions.log" 
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions.log" 
     params:
         distance_dir=get_distance_dir,
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData"
     threads: 8
     script:
-        "../scripts/getIntraInteractions.R"
+        "../scripts/intraInteractions.R"
 

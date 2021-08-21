@@ -5,6 +5,8 @@ def get_output_files(wildcards):
     for t in config["tissues"]:
         #files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/bin-distance-bychr-{config["distbin"]}.png')
         #files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/bin-distance-{config["distbin"]}.png')
+        files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/bin-size-bychr-{config["sizebin"]}.png')
+        files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/bin-size-{config["sizebin"]}.png')
         files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/intra-inter-count-onek-bins.png')
         files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/intra-inter-count-log-bins.png')
     return files

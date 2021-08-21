@@ -16,7 +16,6 @@ load(ANNOT_RDATA)
 chrs <- c(as.character(1:22), "X", "Y")
 MImatrix <- fread(file = snakemake@input[["network"]], header = T,  sep = ",", nThread = MCCORES)
 MImatrix <- data.matrix(MImatrix)
-MImatrix <- rbind(MImatrix,  rep(NA, ncol(MImatrix)))
 rownames(MImatrix) = colnames(MImatrix)
 cat("MI matrix with ", nrow(MImatrix), " rows and ", ncol(MImatrix), " columns loaded \n")
 annot <- annot %>% filter(gene_id %in% colnames(MImatrix))
@@ -32,6 +31,8 @@ distvals <- lapply(X = chrs, FUN = function(ch) {
 
   if(ngenes > 0) {
     chrvals <- parallel::mclapply(X = 1:(ngenes-1), mc.cores = MCCORES,  mc.cleanup = T, FUN = function(i) {
+    #chrvals <-lapply(1:(ngenes-1), function(i) {
+    #  cat(i)
       gene1 <- genes[i]
       s1 <- genes_annot %>% filter(gene_id == gene1) %>% pull(start)
       other.genes <- genes[(i+1):ngenes]

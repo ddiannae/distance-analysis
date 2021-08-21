@@ -37,32 +37,30 @@ rule get_intra_comms:
     """
 
 rule get_distribution_plots:
-  input:
-    normal=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/normal_interactions_{cutoff}.tsv",
-    cancer=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/cancer_interactions_{cutoff}.tsv"
-  output:
-    config["datadir"]+"/{tissue}/distance_plots/mi_boxplot_network_{cutoff}.png",
-    config["datadir"]+"/{tissue}/distance_plots/mi_density_network_{cutoff}.png"
-  shell:
-    """
-    mkdir -p {config["datadir"]}/{wildcards.tissue}/distance_plots
-    Rscript getMIDistributionPlots.R {input.normal} {input.cancer} {config["datadir"]}/{wildcards.tissue}/distance_plots {wildcards.cutoff}
-    """
+    input:
+        normal=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/normal_interactions_{cutoff}.tsv",
+        cancer=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/cancer_interactions_{cutoff}.tsv"
+    output:
+        boxplot=config["datadir"]+"/{tissue}/distance_plots/mi_boxplot_network_{cutoff}.png",
+        desity=config["datadir"]+"/{tissue}/distance_plots/mi_density_network_{cutoff}.png"
+    log:
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/mi_network_{cutoff}_distribution_plots.log"
+    script:
+        "../scripts/MIDistributionPlots.R"
 
 rule get_network_tables:
     input:
         mi_matrix=getMIMatrix
+        done=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/done.txt"
     output:
-        interactions=config["datadir"] + "/{tissue}/network_" + config["algorithm"] + "/{cond}_interactions_" + str(config["intercut"]) + ".tsv",
-        vertices=config["datadir"] + "/{tissue}/network_" + config["algorithm"] + "/{cond}_vertices_" + str(config["intercut"]) + ".tsv"
+        interactions=config["datadir"] + "/{tissue}/network_" + config["algorithm"] + "/{cond}_interactions_{cutoff}.tsv",
+        vertices=config["datadir"] + "/{tissue}/network_" + config["algorithm"] + "/{cond}_vertices_{cutoff}.tsv"
     params:
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData",
-        cut=config["intercut"],
+        cutoff="{cutoff}",
     threads: 8
-    log
-        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/{cond}_network_table.log"
+    log:
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/{cond}_network_table_{cutoff}.log"
     script:
         "../scripts/networkTables.R"
-# It is ok to use python code here because all variables exist
-#shell(f'mkdir -p {config["datadir"]}/{wildcards.tissue}/network_tables_{config["algorithm"]}')
     

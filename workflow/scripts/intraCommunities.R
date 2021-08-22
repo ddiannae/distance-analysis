@@ -1,17 +1,10 @@
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+
 library(igraph)
 library(readr)
 library(dplyr)
-
-args = commandArgs(trailingOnly=TRUE)
-
-if (length(args) < 4 ) {
-  stop("Incorrect number of arguments", call.=FALSE)
-} else {
-  INTERACTIONS <- args[1]
-  VERTICES <- args[2]
-  COMM <- args[3]
-  COMM_INFO <- args[4]
-}
 
 getComInfo <- function(cmembership, network){
   comp.info <- lapply(unique(cmembership), function(idc){
@@ -30,10 +23,11 @@ getComInfo <- function(cmembership, network){
   return(comp.info)
 }
 
-interactions <- read_tsv(INTERACTIONS)
-interactions <- interactions %>% filter(interaction_type == "Intra")
+cat("Reading files\n")
+interactions <- read_tsv(snakemake@input[["interactions"]])
+vertices <- read_tsv(snakemake@input[["vertices"]])
 
-vertices <- read_tsv(VERTICES)
+interactions <- interactions %>% filter(interaction_type == "Intra")
 
 ## Keep only vertices in intra-chromosomal interactions
 vertices <- vertices %>% filter(ensembl %in% union(interactions$source_ensembl, 
@@ -42,14 +36,17 @@ vertices <- vertices %>% filter(ensembl %in% union(interactions$source_ensembl,
 colnames(interactions)[1:2] <- c("from", "to")
 net <- graph_from_data_frame(interactions, 
                              directed=F, vertices = vertices)
+
+cat("Getting intra-interactions communities\n")
 comm <- cluster_louvain(graph = net)
 names(comm$membership) <- comm$names
 
 df_comm <- data.frame(comm$names, comm$membership)
 colnames(df_comm) <- c("ensembl", "community")
 
-write_tsv(df_comm, COMM)
-
 comm_info <- getComInfo(comm$membership, net)
-write_tsv(comm_info, COMM_INFO)
+
+cat("Saving files\n")
+write_tsv(df_comm, snakemake@output[["comm_info"]])
+write_tsv(comm_info, snakemake@output[["comm_info"]])
 

@@ -14,27 +14,27 @@ rule get_intra_comms_distance_plots:
     """
 
 rule get_intra_comms_plots:
-  input:
-    ci_normal=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/normal_comm-info_{cutoff}.tsv",
-    ci_cancer=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/cancer_comm-info_{cutoff}.tsv",
-  output:
-    expand(config["datadir"]+"/{{tissue}}/distance_plots/comm_{plotfactor}_{plottype}_network_{{cutoff}}.png", plotfactor=["order","size", "density"],plottype=["boxplot","histogram"])
-  shell:
-    """
-    Rscript getIntraCommunitiesPlots.R {input.ci_normal} {input.ci_cancer} {config["datadir"]}/{wildcards.tissue}/distance_plots {wildcards.cutoff}
-    """
+    input:
+        comm_info_normal=config["datadir"]+"/{tissue}/network_tables_" + config["algorithm"] + "/normal_comm-info_{cutoff}.tsv",
+        comm_info_cancer=config["datadir"]+"/{tissue}/network_tables_" + config["algorithm"] + "/cancer_comm-info_{cutoff}.tsv"
+    output:
+        expand(config["datadir"]+"/{{tissue}}/distance_plots/comm_{plotfactor}_{plottype}_network_{{cutoff}}.png", plotfactor=["order","size", "density"],plottype=["boxplot","histogram"])
+    log:
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/intra_communities_{cutoff}_plots.log"
+    script:
+        "../scripts/intraCommunitiesPlots.R"
    
 rule get_intra_comms:
-  input:
-    interactions=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/{type}_interactions_{cutoff}.tsv",
-    vertices=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/{type}_vertices_{cutoff}.tsv"
-  output:
-    comms=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/{type}_comm_{cutoff}.tsv",
-    comm_info=config["datadir"]+"/{tissue}/network_tables_{config['algorithm']}/{type}_comm-info_{cutoff}.tsv",
-  shell:
-    """
-    Rscript getIntraCommunities.R {input.interactions} {input.vertices} {output.comms} {output.comm_info}
-    """
+    input:
+        interactions=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/{cond}_interactions_{cutoff}.tsv",
+        vertices=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/{cond}_vertices_{cutoff}.tsv"
+    output:
+        comm=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/{cond}_comm_{cutoff}.tsv",
+        comm_info=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/{cond}_comm-info_{cutoff}.tsv",
+    log:
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/{cond}_intra_communities_{cutoff}.log"
+    script:
+        "../intraCommunities.R"
 
 rule get_distribution_plots:
     input:
@@ -44,13 +44,13 @@ rule get_distribution_plots:
         boxplot=config["datadir"]+"/{tissue}/distance_plots/mi_boxplot_network_{cutoff}.png",
         desity=config["datadir"]+"/{tissue}/distance_plots/mi_density_network_{cutoff}.png"
     log:
-        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/mi_network_{cutoff}_distribution_plots.log"
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/network_{cutoff}_distribution_plots.log"
     script:
         "../scripts/MIDistributionPlots.R"
 
 rule get_network_tables:
     input:
-        mi_matrix=getMIMatrix
+        mi_matrix=getMIMatrix,
         done=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/done.txt"
     output:
         interactions=config["datadir"] + "/{tissue}/network_" + config["algorithm"] + "/{cond}_interactions_{cutoff}.tsv",

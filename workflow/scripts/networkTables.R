@@ -2,39 +2,31 @@ log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")
 
-library(data.table)
-library(readr)
-library(parallel)
+library(vroom)
+library(tidyr)
 library(dplyr)
 
-
-ANNOT <- snakemake@params[["annot"]]
-MATRIX <- snakemake@input[["mi_matrix"]]
-INTERCUT <- snakemake@params[["cut"]]
-MCCORES <- as.numeric(snakemake@threads[[1]])
-
+CUTOFF <- as.numeric(snakemake@params[["cutoff"]])
+COND <- snakemake@params[["cond"]]
 
 cat("Loading files\n")
-load(ANNOT)
-MImatrix <- fread(file = MATRIX, header = T,  sep = ",", nThread = MCCORES)
-MImatrix <- as.matrix(MImatrix)
-MIvals <- MImatrix[upper.tri(MImatrix)]
-MIvals <- sort(MIvals, decreasing = T)
-cutoff <- MIvals[INTERCUT]
+load(snakemake@params[["annot"]])
+head(annot)
+MImatrix <- vroom::vroom(snakemake@input[["mi_matrix"]])
 genes <- colnames(MImatrix)
 
-MIvals <- which(MImatrix>=cutoff, arr.ind = T)
-mis <- apply(X = MIvals, MARGIN = 1, FUN = function(r){
-  return(MImatrix[r["row"], r["col"]])
-})
+cat("MI matrix with ", nrow(MImatrix), " rows and ", ncol(MImatrix), " columns loaded \n")
+MImatrix$source <- genes
 
-MIvals <- as_tibble(MIvals) %>% mutate(source = genes[row], target = genes[col])
-MIvals$mi <- mis
-MIvals <- MIvals %>% arrange(desc(mi)) %>% mutate(row_num = 1:nrow(MIvals))
+cat("Annotating interactions\n")
+MIvals <- MImatrix %>% pivot_longer(cols = starts_with("ENSG"), 
+                                     names_to = "target",
+                                     values_to = "mi",
+                                     values_drop_na = TRUE) %>% 
+  arrange(desc(mi)) %>% mutate(row_num = row_number()) %>% filter(row_num <= CUTOFF)
 
 cat("Merging annotations\n")
-cond <- strsplit(strsplit(MATRIX, split = "/")[[1]][8], split="_")[[1]][1]
-MIvals$cond <- cond
+MIvals$cond <- COND
 
 annot <- annot %>% select(gene_id, chr, start, end, ensembl_id, gene_name)
 colnames(annot) <-  c("source", "source_chr", "source_start", "source_end", "source_ensembl", "source_name")
@@ -43,8 +35,8 @@ colnames(annot) <-  c("target", "target_chr", "target_start", "target_end",  "ta
 MIvals <- merge(annot, MIvals)
 MIvals <- MIvals %>% mutate(inter = if_else(source_chr == target_chr,  F, T), 
                       interaction_type = if_else(inter == T, "Inter", "Intra"),
-                      distance = if_else(inter == F, pmax(source_start, target_start) - 
-                                           pmin(source_start, target_start), as.integer(-1)))
+                      distance = if_else(inter == F, as.integer(pmax(source_start, target_start) - 
+                                           pmin(source_start, target_start)), as.integer(-1)))
 
 targets <- MIvals %>% select(target_ensembl, target_chr, target_start, target_end, target_name)
 sources <- MIvals %>% select(source_ensembl, source_chr, source_start, source_end, source_name)
@@ -58,6 +50,6 @@ MIvals <- MIvals %>%
   arrange(row_num) 
 
 cat("Saving files\n")
-write_tsv(vertices, file = snakemake@ouput[["vertices"]])
-write_tsv(MIvals, file = snakemake@output[["interactions"]])
+vroom_write(vertices, file = snakemake@output[["vertices"]])
+vroom_write(MIvals, file = snakemake@output[["interactions"]])
 

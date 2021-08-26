@@ -47,6 +47,6 @@ colnames(df_comm) <- c("ensembl", "community")
 comm_info <- getComInfo(comm$membership, net)
 
 cat("Saving files\n")
-write_tsv(df_comm, snakemake@output[["comm_info"]])
+write_tsv(df_comm, snakemake@output[["comm"]])
 write_tsv(comm_info, snakemake@output[["comm_info"]])
 

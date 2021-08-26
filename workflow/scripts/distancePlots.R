@@ -1,21 +1,10 @@
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+
 library(readr)
 library(dplyr)
 library(ggplot2)
-
-args = commandArgs(trailingOnly=TRUE)
-
-if (length(args) < 4 ) {
-  stop("Incorrect number of arguments", call.=FALSE)
-} else {
-  NORMAL_INTER <- args[1]
-  NORMAL_VER <- args[2]
-  NORMAL_COMMS <- args[3]
-  CANCER_INTER <- args[4]
-  CANCER_VER <- args[5]
-  CANCER_COMMS <- args[6]
-  FIGDIR <- args[7]
-  CUTOFF <- args[8]
-}
 
 dropLeadingZero <- function(l){
   #cat(l)
@@ -60,14 +49,16 @@ getDistances <- function(interactions, vertices, communities, cond) {
   return(comm_dist) 
 }
 
-normal_inter <- read_tsv(NORMAL_INTER)
-normal_ver <- read_tsv(NORMAL_VER)
-normal_comms <- read_tsv(NORMAL_COMMS)
+cat("Reading files\n")
+normal_inter <- read_tsv(snakemake@input[["inter_normal"]])
+normal_ver <- read_tsv(snakemake@input[["ver_normal"]])
+normal_comms <- read_tsv(snakemake@input[["comm_normal"]])
 
-cancer_inter <- read_tsv(CANCER_INTER)
-cancer_ver <- read_tsv(CANCER_VER)
-cancer_comms <- read_tsv(CANCER_COMMS)
+cancer_inter <- read_tsv(snakemake@input[["inter_cancer"]])
+cancer_ver <- read_tsv(snakemake@input[["ver_cancer"]])
+cancer_comms <- read_tsv(snakemake@input[["comm_cancer"]])
 
+cat("Getting communities diameters\n")
 normal_distances <- getDistances(normal_inter, normal_ver, normal_comms, "normal")
 cancer_distances <- getDistances(cancer_inter, cancer_ver, cancer_comms, "cancer")
 
@@ -76,6 +67,7 @@ colors <- c("#e3a098", "#a32e27")
 labels <- c( "Healthy", "Cancer")
 comms$cond <- factor(comms$cond,   levels = c("normal", "cancer"), labels = labels)
 
+cat("Building diameter boxplot\n")
 p <- ggplot(comms) +
   geom_boxplot(aes(x = cond, y = diameter, fill = cond)) +
   theme_minimal(base_size = 30) +
@@ -84,10 +76,11 @@ p <- ggplot(comms) +
   ylab("Community diameter") +
   theme(legend.position = "none") 
 
-png(paste0(FIGDIR, "/comm_diameter_boxplot_network_", CUTOFF, ".png"), width = 750, height = 750)
+png(snakemake@output[[1]], width = 750, height = 750)
 print(p)
 dev.off()  
 
+cat("Building diameter histogram\n")
 p <- ggplot(comms) +
   geom_histogram(aes(x = diameter,  fill = cond, color = cond),
                  bins = 100, position = "identity") +
@@ -101,10 +94,11 @@ p <- ggplot(comms) +
   theme(legend.position = "none",
         axis.text.x = element_text(size = 20))
 
-png(paste0(FIGDIR, "/comm_diameter_histogram_network_", CUTOFF, ".png"), width = 1000, height = 500)
+png(snakemake@output[[2]], width = 1000, height = 500)
 print(p)
 dev.off()  
 
+cat("Building mean distance boxplot\n")
 p <- ggplot(comms) +
   geom_boxplot(aes(x = cond, y = mean_dist, fill = cond)) +
   theme_minimal(base_size = 30) +
@@ -113,10 +107,11 @@ p <- ggplot(comms) +
   ylab("Community mean distance") +
   theme(legend.position = "none") 
 
-png(paste0(FIGDIR, "/comm_meandistance_boxplot_network_", CUTOFF, ".png"), width = 750, height = 750)
+png(snakemake@output[[3]], width = 750, height = 750)
 print(p)
 dev.off()  
 
+cat("Building mean distance histogram\n")
 p <- ggplot(comms) +
   geom_histogram(aes(x = mean_dist,  fill = cond, color = cond),
                  bins = 100, position = "identity") +
@@ -129,8 +124,6 @@ p <- ggplot(comms) +
   xlab("Community mean distance") +
   theme(legend.position = "none", axis.text.x = element_text(size = 20))
 
-png(paste0(FIGDIR, "/comm_meandistance_histogram_network_", CUTOFF, ".png"), width = 1000, height = 500)
+png(snakemake@output[[4]], width = 1000, height = 500)
 print(p)
-dev.off()  
-
-
+dev.off()

@@ -36,6 +36,20 @@ rule get_intra_comms:
     script:
         "../scripts/intraCommunities.R"
 
+rule get_network_stats:
+    input:
+        interactions=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/{cond}-interactions-{cutoff}.tsv",
+        vertices=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/{cond}-vertices-{cutoff}.tsv"
+    output:
+        network=config["datadir"]+"/{tissue}/rdata/{cond}_network_" + config["algorithm"] + "_{cutoff}.RData"
+        network_stats=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/{cond}-network-stats-{cutoff}.tsv"
+        node_attributes=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/{cond}-node-attributes-{cutoff}.tsv"
+        edge_attributes=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/{cond}-edge-attributes-{cutoff}.tsv"
+    log:
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/{cond}_network_stats_{cutoff}.log"
+    script:
+        "../scripts/networkStats.R"
+
 rule get_distribution_plots:
     input:
         normal=config["datadir"]+"/{tissue}/network_" + config["algorithm"] + "/normal-interactions-{cutoff}.tsv",

@@ -19,10 +19,12 @@ rule get_intra_comms_distance_plots:
         comm_cancer=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/cancer-comm-{cutoff}.tsv"
     output:
         expand(config["datadir"]+"/{{tissue}}/distance_plots/comm-{plotfactor}-{plottype}-network-{{cutoff}}.png", plotfactor=["diameter","meandistance"],plottype=["boxplot","histogram"])
+    params:
+        tissue="{tissue}"
     log:
-        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/distance_communities_{cutoff}_plots.log"
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/intra_communities_{cutoff}_distance_plots.log"
     script:
-        "../scripts/distancePlots.R" 
+        "../scripts/intraCommunitiesDistancePlots.R"
 
 rule get_intra_comms_plots:
     input:
@@ -30,10 +32,12 @@ rule get_intra_comms_plots:
         comm_info_cancer=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/cancer-comm-info-{cutoff}.tsv"
     output:
         expand(config["datadir"]+"/{{tissue}}/distance_plots/comm-{plotfactor}-{plottype}-network-{{cutoff}}.png", plotfactor=["order","size", "density"],plottype=["boxplot","histogram"])
+    params:
+        tissue="{tissue}"
     log:
         config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/intra_communities_{cutoff}_plots.log"
     script:
-        "../scripts/intraCommunitiesPlots.R"
+        "../scripts/intraCommunitiesStatsPlots.R"
    
 rule get_intra_comms:
     input:
@@ -82,6 +86,8 @@ rule get_distribution_plots:
     output:
         boxplot=config["datadir"]+"/{tissue}/distance_plots/mi-boxplot-network-{cutoff}.png",
         density=config["datadir"]+"/{tissue}/distance_plots/mi-density-network-{cutoff}.png"
+    params:
+        tissue="{tissue}"
     log:
         config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/network_{cutoff}_distribution_plots.log"
     script:

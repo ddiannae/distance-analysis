@@ -9,6 +9,7 @@ library(ggthemes)
 
 NORMAL_NETWORK <- snakemake@input[["normal"]]
 CANCER_NETWORK <- snakemake@input[["cancer"]]
+TISSUE <- snakemake@params[["tissue"]]
 
 colors <- c("#e3a098", "#a32e27")
 labels <- c( "Healthy", "Cancer")
@@ -27,7 +28,8 @@ p <- ggplot(DT) +
   scale_fill_manual(name = "Condition", values = colors) +
   scale_color_manual(name = "Condition", values = colors) +
   guides(color = FALSE) +
-  theme_minimal(base_size = 30) 
+  theme_minimal(base_size = 30)  +
+  ggtitle(TISSUE)
 
 png(filename=snakemake@output[["density"]], width = 1000, height = 500)
 print(p)
@@ -40,7 +42,8 @@ p <- ggplot(DT, aes(x = cond, y = mi,  fill = cond)) +
   scale_color_manual(name = "Condition", values = colors) +
   xlab("") +
   ylab("Mutual Information") +
-  theme(legend.position = "none") 
+  theme(legend.position = "none")  +
+  ggtitle(TISSUE)
     
 png(snakemake@output[["boxplot"]], width = 750, height = 750)
 print(p)

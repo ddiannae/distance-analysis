@@ -3,8 +3,9 @@ sink(log)
 sink(log, type="message")
 
 library(igraph)
-library(tidyr)
 library(readr)
+library(tidyr)
+library(dplyr)
 
 cat("Reading files\n")
 interactions <- read_tsv(snakemake@input[["interactions"]]) %>% 
@@ -14,11 +15,11 @@ interactions <- read_tsv(snakemake@input[["interactions"]]) %>%
 vertices <- read_tsv(snakemake@input[["vertices"]]) %>% 
   dplyr::rename("name" = "ensembl")
 
-cat("Building weighted graph")
+cat("Building weighted graph\n")
 net <- igraph::graph_from_data_frame(interactions, directed=FALSE, 
                                      vertices = vertices)
 
-cat("Getting graph statistics\m")
+cat("Getting graph statistics\n")
 cd <- igraph::centr_degree(net)
 cb <- igraph::centr_betw(net)
 ce <- igraph::centr_eigen(net)
@@ -36,18 +37,18 @@ stats <- tibble(statistic = c("density", "transitivity", "no_components", "mean_
 
 stats <- stats %>% arrange(statistic)
 
-cat("Getting node and edges statistics\m")
+cat("Getting node and edges statistics\n")
 node_attrs <- tibble::enframe(igraph::degree(net)) %>% 
   rename("degree" = "value") %>% 
-  inner_join(tibble::enframe(igraph::strength(net)) %>% 
-               rename("strength" = "value")) %>%
-  inner_join(tibble::enframe(igraph::coreness(net, mode="all")) %>%
-               rename("coreness" = "value")) %>%
-  inner_join(tibble::enframe(igraph::hub_score(net)$vector) %>%
-               rename("hub_score" = "value")) %>%
-  inner_join(centr)
+  dplyr::inner_join(tibble::enframe(igraph::strength(net)) %>% 
+            dplyr::rename("strength" = "value")) %>%
+  dplyr::inner_join(tibble::enframe(igraph::coreness(net, mode="all")) %>%
+            dplyr::rename("coreness" = "value")) %>%
+  dplyr::inner_join(tibble::enframe(igraph::hub_score(net)$vector) %>%
+            dplyr::rename("hub_score" = "value")) %>%
+  dplyr::inner_join(centr)
 
-edges <- as_data_frame(net, what="edges") %>% select(from, to)
+edges <- igraph::as_data_frame(net, what="edges") %>% dplyr::select(from, to)
 edges$edge_between <- edge_betweenness(net, directed=T)
 
 cat("Saving files\n")
@@ -55,4 +56,3 @@ save(net, file=snakemake@output[["network"]])
 write_tsv(stats, file=snakemake@output[["network_stats"]])
 write_tsv(node_attrs, file=snakemake@output[["node_attributes"]])
 write_tsv(edges, file=snakemake@output[["edge_attributes"]])
-

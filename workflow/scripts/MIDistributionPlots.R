@@ -27,18 +27,19 @@ p <- ggplot(DT) +
   scale_fill_manual(name = "Condition", values = colors) +
   scale_color_manual(name = "Condition", values = colors) +
   guides(color = FALSE) +
-  theme_minimal(base_size = 20) 
+  theme_minimal(base_size = 30) 
 
-png(snakemake@output[["density"]], width = 750, height = 500)
+png(filename=snakemake@output[["density"]], width = 1000, height = 500)
 print(p)
 dev.off()  
   
 p <- ggplot(DT, aes(x = cond, y = mi,  fill = cond)) + 
   geom_boxplot() +
-  theme_minimal(base_size = 20) +
+  theme_minimal(base_size = 30) +
   scale_fill_manual(name = "Condition", values = colors) +
   scale_color_manual(name = "Condition", values = colors) +
   xlab("") +
+  ylab("Mutual Information") +
   theme(legend.position = "none") 
     
 png(snakemake@output[["boxplot"]], width = 750, height = 750)

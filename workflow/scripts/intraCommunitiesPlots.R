@@ -20,34 +20,6 @@ colors <- c("#e3a098", "#a32e27")
 labels <- c( "Healthy", "Cancer")
 comms$cond <- factor(comms$cond,   levels = c("normal", "cancer"), labels = labels)
 
-cat("Building size boxplot network\n")
-p <- ggplot(comms) +
-  geom_boxplot(aes(x = cond, y = size, fill = cond)) +
-  theme_minimal(base_size = 30) +
-  scale_fill_manual(name = "Condition", values = colors) +
-  xlab("") +
-  ylab("Community size") +
-  theme(legend.position = "none") 
-
-png(snakemake@output[[1]], width = 750, height = 750)
-print(p)
-dev.off()  
-
-cat("Building size histogram network\n")
-p <- ggplot(comms) +
-  geom_histogram(aes(x = size,  fill = cond, color = cond),
-                binwidth = 1, position = "identity") +
-  theme_minimal(base_size = 30) +
-  facet_wrap(~cond, nrow = 1) +
-  scale_fill_manual(name = "Condition", values = colors) +
-  scale_color_manual(name = "Condition", values = colors) +
-  ylab("Frequency") +
-  xlab("Community size") +
-  theme(legend.position = "none")
-
-png(snakemake@output[[2]], width = 1000, height = 500)
-print(p)
-dev.off()  
 
 cat("Building order boxplot network\n")
 p <- ggplot(comms) +
@@ -58,7 +30,7 @@ p <- ggplot(comms) +
   ylab("Community order") +
   theme(legend.position = "none") 
 
-png(snakemake@output[[3]], width = 750, height = 750)
+png(snakemake@output[[1]], width = 750, height = 750)
 print(p)
 dev.off()  
 
@@ -72,6 +44,35 @@ p <- ggplot(comms) +
   scale_color_manual(name = "Condition", values = colors) +
   ylab("Frequency") +
   xlab("Community order") +
+  theme(legend.position = "none")
+
+png(snakemake@output[[2]], width = 1000, height = 500)
+print(p)
+dev.off()  
+
+cat("Building size boxplot network\n")
+p <- ggplot(comms) +
+  geom_boxplot(aes(x = cond, y = size, fill = cond)) +
+  theme_minimal(base_size = 30) +
+  scale_fill_manual(name = "Condition", values = colors) +
+  xlab("") +
+  ylab("Community size") +
+  theme(legend.position = "none") 
+
+png(snakemake@output[[3]], width = 750, height = 750)
+print(p)
+dev.off()  
+
+cat("Building size histogram network\n")
+p <- ggplot(comms) +
+  geom_histogram(aes(x = size,  fill = cond, color = cond),
+                binwidth = 1, position = "identity") +
+  theme_minimal(base_size = 30) +
+  facet_wrap(~cond, nrow = 1) +
+  scale_fill_manual(name = "Condition", values = colors) +
+  scale_color_manual(name = "Condition", values = colors) +
+  ylab("Frequency") +
+  xlab("Community size") +
   theme(legend.position = "none")
 
 png(snakemake@output[[4]], width = 1000, height = 500)

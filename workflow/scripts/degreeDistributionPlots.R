@@ -12,6 +12,7 @@ net_cancer <- net
 load(snakemake@input[["network_normal"]])
 
 TISSUE <- snakemake@params[["tissue"]]
+substring(TISSUE, 1, 1) <- toupper(substring(TISSUE, 1, 1))
 
 cat("Getting cumulative degree distribution\n")
 ddis_cancer <- igraph::degree_distribution(net_cancer, cumulative = T)

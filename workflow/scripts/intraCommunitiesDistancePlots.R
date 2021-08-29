@@ -49,6 +49,9 @@ getDistances <- function(interactions, vertices, communities, cond) {
   return(comm_dist) 
 }
 
+TISSUE <- snakemake@params[["tissue"]]
+substring(TISSUE, 1, 1) <- toupper(substring(TISSUE, 1, 1))
+
 cat("Reading files\n")
 normal_inter <- read_tsv(snakemake@input[["inter_normal"]])
 normal_ver <- read_tsv(snakemake@input[["ver_normal"]])
@@ -74,7 +77,8 @@ p <- ggplot(comms) +
   scale_fill_manual(name = "Condition", values = colors) +
   xlab("") +
   ylab("Community diameter") +
-  theme(legend.position = "none") 
+  theme(legend.position = "none") +
+  ggtitle(TISSUE)
 
 png(snakemake@output[[1]], width = 750, height = 750)
 print(p)
@@ -92,7 +96,8 @@ p <- ggplot(comms) +
   ylab("Frequency") +
   xlab("Community diameter") +
   theme(legend.position = "none",
-        axis.text.x = element_text(size = 20))
+        axis.text.x = element_text(size = 20)) +
+  ggtitle(TISSUE)
 
 png(snakemake@output[[2]], width = 1000, height = 500)
 print(p)
@@ -105,7 +110,8 @@ p <- ggplot(comms) +
   scale_fill_manual(name = "Condition", values = colors) +
   xlab("") +
   ylab("Community mean distance") +
-  theme(legend.position = "none") 
+  theme(legend.position = "none")  +
+  ggtitle(TISSUE)
 
 png(snakemake@output[[3]], width = 750, height = 750)
 print(p)
@@ -122,7 +128,8 @@ p <- ggplot(comms) +
   scale_x_continuous(labels = dropLeadingZero) +
   ylab("Frequency") +
   xlab("Community mean distance") +
-  theme(legend.position = "none", axis.text.x = element_text(size = 20))
+  theme(legend.position = "none", axis.text.x = element_text(size = 20)) +
+  ggtitle(TISSUE)
 
 png(snakemake@output[[4]], width = 1000, height = 500)
 print(p)

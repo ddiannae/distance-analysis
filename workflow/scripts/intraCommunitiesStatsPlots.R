@@ -7,6 +7,7 @@ library(dplyr)
 library(ggplot2)
 
 TISSUE <- snakemake@params[["tissue"]]
+substring(TISSUE, 1, 1) <- toupper(substring(TISSUE, 1, 1))
 
 cat("Reading files\n")
 comms_normal <- read_tsv(snakemake@input[["comm_info_normal"]])

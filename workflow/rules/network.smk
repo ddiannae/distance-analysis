@@ -1,11 +1,11 @@
 rule get_network_plots:
     input:
-        config["datadir"]+"/{tissue}/distance_plots/comm-diameter-histogram-network-{cutoff}.png",
-        config["datadir"]+"/{tissue}/distance_plots/comm-size-histogram-network-{cutoff}.png",
-        config["datadir"]+"/{tissue}/distance_plots/mi-density-network-{cutoff}.png",
-        config["datadir"]+"/{tissue}/distance_plots/degree-distribution-{cutoff}.png",
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"_plots/comm-diameter-histogram-network-{cutoff}.png",
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"_plots/comm-size-histogram-network-{cutoff}.png",
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"_plots/mi-density-network-{cutoff}.png",
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"_plots/degree-distribution-{cutoff}.png",
     output:
-        config["datadir"]+"/{tissue}/distance_plots/network-plots-{cutoff}.txt"
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"_plots/network-plots-{cutoff}.txt"
     shell:
         "echo done > {output}"
 
@@ -18,7 +18,7 @@ rule get_intra_comms_distance_plots:
         comm_normal=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/normal-comm-{cutoff}.tsv",
         comm_cancer=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/cancer-comm-{cutoff}.tsv"
     output:
-        expand(config["datadir"]+"/{{tissue}}/distance_plots/comm-{plotfactor}-{plottype}-network-{{cutoff}}.png", plotfactor=["diameter","meandistance"],plottype=["boxplot","histogram"])
+        expand(config["datadir"]+"/{{tissue}}/network_"+config["algorithm"]+"_plots/comm-{plotfactor}-{plottype}-network-{{cutoff}}.png", plotfactor=["diameter","meandistance"],plottype=["boxplot","histogram"])
     params:
         tissue="{tissue}"
     log:
@@ -31,7 +31,7 @@ rule get_intra_comms_plots:
         comm_info_normal=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/normal-comm-info-{cutoff}.tsv",
         comm_info_cancer=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/cancer-comm-info-{cutoff}.tsv"
     output:
-        expand(config["datadir"]+"/{{tissue}}/distance_plots/comm-{plotfactor}-{plottype}-network-{{cutoff}}.png", plotfactor=["order","size", "density"],plottype=["boxplot","histogram"])
+        expand(config["datadir"]+"/{{tissue}}/network_"+config["algorithm"]+"_plots/comm-{plotfactor}-{plottype}-network-{{cutoff}}.png", plotfactor=["order","size", "density"],plottype=["boxplot","histogram"])
     params:
         tissue="{tissue}"
     log:
@@ -58,8 +58,8 @@ rule get_degree_distribution_plots:
     params:
         tissue="{tissue}"
     output:
-        dd=config["datadir"]+"/{tissue}/distance_plots/degree-distribution-{cutoff}.png",
-        cdd=config["datadir"]+"/{tissue}/distance_plots/cumulative-degree-distribution-{cutoff}.png",
+        dd=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"_plots/degree-distribution-{cutoff}.png",
+        cdd=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"_plots/degree-distribution-cumulative-{cutoff}.png",
     log:
         config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/degree_distribution_{cutoff}_plots.log"
     script:
@@ -84,8 +84,8 @@ rule get_distribution_plots:
         normal=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/normal-interactions-{cutoff}.tsv",
         cancer=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/cancer-interactions-{cutoff}.tsv"
     output:
-        boxplot=config["datadir"]+"/{tissue}/distance_plots/mi-boxplot-network-{cutoff}.png",
-        density=config["datadir"]+"/{tissue}/distance_plots/mi-density-network-{cutoff}.png"
+        boxplot=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"_plots/mi-boxplot-network-{cutoff}.png",
+        density=config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"_plots/mi-density-network-{cutoff}.png"
     params:
         tissue="{tissue}"
     log:

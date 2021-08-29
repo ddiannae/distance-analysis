@@ -10,6 +10,7 @@ library(ggthemes)
 NORMAL_NETWORK <- snakemake@input[["normal"]]
 CANCER_NETWORK <- snakemake@input[["cancer"]]
 TISSUE <- snakemake@params[["tissue"]]
+substring(TISSUE, 1, 1) <- toupper(substring(TISSUE, 1, 1))
 
 colors <- c("#e3a098", "#a32e27")
 labels <- c( "Healthy", "Cancer")

@@ -2,7 +2,8 @@ rule get_network_plots:
     input:
         config["datadir"]+"/{tissue}/distance_plots/comm-diameter-histogram-network-{cutoff}.png",
         config["datadir"]+"/{tissue}/distance_plots/comm-size-histogram-network-{cutoff}.png",
-        config["datadir"]+"/{tissue}/distance_plots/mi-density-network-{cutoff}.png"
+        config["datadir"]+"/{tissue}/distance_plots/mi-density-network-{cutoff}.png",
+        config["datadir"]+"/{tissue}/distance_plots/degree-distribution-{cutoff}.png",
     output:
         config["datadir"]+"/{tissue}/distance_plots/network-plots-{cutoff}.txt"
     shell:
@@ -45,6 +46,20 @@ rule get_intra_comms:
         config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/{cond}_intra_communities_{cutoff}.log"
     script:
         "../scripts/intraCommunities.R"
+
+rule get_degree_distribution_plots:
+    input:
+        network_normal=config["datadir"]+"/{tissue}/rdata/normal_network_"+config["algorithm"]+"_{cutoff}.RData",
+        network_cancer=config["datadir"]+"/{tissue}/rdata/cancer_network_"+config["algorithm"]+"_{cutoff}.RData",
+    params:
+        tissue="{tissue}"
+    output:
+        dd=config["datadir"]+"/{tissue}/distance_plots/degree-distribution-{cutoff}.png",
+        cdd=config["datadir"]+"/{tissue}/distance_plots/cumulative-degree-distribution-{cutoff}.png",
+    log:
+        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/degree_distribution_{cutoff}_plots.log"
+    script:
+        "../scripts/degreeDistributionPlots.R"
 
 rule get_network_stats:
     input:

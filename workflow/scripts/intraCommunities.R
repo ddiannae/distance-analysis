@@ -24,20 +24,24 @@ getComInfo <- function(cmembership, network){
 }
 
 cat("Reading files\n")
-interactions <- read_tsv(snakemake@input[["interactions"]])
-vertices <- read_tsv(snakemake@input[["vertices"]])
+interactions <- read_tsv(snakemake@input[["interactions"]])  %>% 
+  dplyr::rename("from" = "source_ensembl", "to" = "target_ensembl",
+                "weight" = "mi")
+
+vertices <- read_tsv(snakemake@input[["vertices"]]) %>% 
+  dplyr::rename("name" = "ensembl")
 
 interactions <- interactions %>% filter(interaction_type == "Intra")
 
 ## Keep only vertices in intra-chromosomal interactions
-vertices <- vertices %>% filter(ensembl %in% union(interactions$source_ensembl, 
-                                                    interactions$target_ensembl))
+vertices <- vertices %>% filter(name %in% union(interactions$from, 
+                                                    interactions$to))
 
-colnames(interactions)[1:2] <- c("from", "to")
 net <- graph_from_data_frame(interactions, 
                              directed=F, vertices = vertices)
 
 cat("Getting intra-interactions communities\n")
+# Weights used by default
 comm <- cluster_louvain(graph = net)
 names(comm$membership) <- comm$names
 

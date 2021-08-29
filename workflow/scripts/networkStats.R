@@ -1,7 +1,12 @@
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+
 library(igraph)
 library(tidyr)
 library(readr)
 
+cat("Reading files\n")
 interactions <- read_tsv(snakemake@input[["interactions"]]) %>% 
   dplyr::rename("from" = "source_ensembl", "to" = "target_ensembl",
                 "weight" = "mi")
@@ -9,9 +14,11 @@ interactions <- read_tsv(snakemake@input[["interactions"]]) %>%
 vertices <- read_tsv(snakemake@input[["vertices"]]) %>% 
   dplyr::rename("name" = "ensembl")
 
+cat("Building weighted graph")
 net <- igraph::graph_from_data_frame(interactions, directed=FALSE, 
                                      vertices = vertices)
 
+cat("Getting graph statistics\m")
 cd <- igraph::centr_degree(net)
 cb <- igraph::centr_betw(net)
 ce <- igraph::centr_eigen(net)
@@ -29,6 +36,7 @@ stats <- tibble(statistic = c("density", "transitivity", "no_components", "mean_
 
 stats <- stats %>% arrange(statistic)
 
+cat("Getting node and edges statistics\m")
 node_attrs <- tibble::enframe(igraph::degree(net)) %>% 
   rename("degree" = "value") %>% 
   inner_join(tibble::enframe(igraph::strength(net)) %>% 
@@ -39,12 +47,12 @@ node_attrs <- tibble::enframe(igraph::degree(net)) %>%
                rename("hub_score" = "value")) %>%
   inner_join(centr)
 
-save(net, file=snakemake@output[["network"]])
-write_tsv(stats, file=snakemake@output[["network_stats"]])
-write_tsv(node_attrs, file=snakemake@output[["node_attributes"]])
-
 edges <- as_data_frame(net, what="edges") %>% select(from, to)
 edges$edge_between <- edge_betweenness(net, directed=T)
 
+cat("Saving files\n")
+save(net, file=snakemake@output[["network"]])
+write_tsv(stats, file=snakemake@output[["network_stats"]])
+write_tsv(node_attrs, file=snakemake@output[["node_attributes"]])
 write_tsv(edges, file=snakemake@output[["edge_attributes"]])
 

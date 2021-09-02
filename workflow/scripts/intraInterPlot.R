@@ -11,6 +11,9 @@ cat("Reading files\n")
 files <- list(snakemake@input[["normal"]], snakemake@input[["cancer"]])
 BINTYPE <- snakemake@params[["bintype"]]
 
+TISSUE <- snakemake@params[["tissue"]]
+substring(TISSUE, 1, 1) <- toupper(substring(TISSUE, 1, 1))
+
 mi_data <- lapply(files, function(file) {
   read_tsv(file)
 })
@@ -26,7 +29,8 @@ p <- ggplot(mi_data, aes(y = intra_frac, x = bin, color=cond)) +
   theme_few(base_size = 20) +
   theme(legend.position = c(0.85, 0.8)) +
   ylab("Fraction of -cis interactions") +
-  scale_color_manual(name="Condition", values = colors) 
+  scale_color_manual(name="Condition", values = colors) +
+  ggtitle(TISSUE)
 
 if(BINTYPE == "log") {
   p <- p + geom_line()

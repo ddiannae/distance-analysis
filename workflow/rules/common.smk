@@ -3,12 +3,9 @@ import glob
 def get_output_files(wildcards):
     files = []
     for t in config["tissues"]:
-        #files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/bin-distance-bychr-{config["distbin"]}.png')
-        #files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/bin-distance-{config["distbin"]}.png')
-        files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/bin-size-bychr-{config["sizebin"]}.png')
-        files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/bin-size-{config["sizebin"]}.png')
-        files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/intra-inter-count-onek-bins.png')
-        files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/intra-inter-count-log-bins.png')
+        files.append(f'{config["datadir"]}/{t}/network_{config["algorithm"]}_plots/network-plots-{config["cutoff"]}.txt')
+        files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/intra-plots.txt')
+        files.append(f'{config["datadir"]}/{t}/{config["figdir"]}/intra-inter-plots.txt')
     return files
 
 def get_distance_dir(wildcards):

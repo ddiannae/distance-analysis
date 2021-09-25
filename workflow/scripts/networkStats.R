@@ -23,17 +23,19 @@ cat("Getting graph statistics\n")
 cd <- igraph::centr_degree(net)
 cb <- igraph::centr_betw(net)
 ce <- igraph::centr_eigen(net)
+inter <- (interactions%>% filter(interaction_type == "Inter") %>% nrow)/nrow(interactions)
 
 centr <- tibble(name = names(V(net)), centr_degree = cd$res, 
                 centr_between = cb$res, centr_eigen = ce$vector)
 
 stats <- tibble(statistic = c("density", "transitivity", "no_components", "mean_distance", 
                 "diameter", "degree_centralization", "between_centralization",
-                "eigen_centralization"),
+                "eigen_centralization", "vertices", "interactions", "inter_fraction"),
        value = c(igraph::edge_density(net), igraph::transitivity(net), 
                 igraph::components(net)$no, igraph::mean_distance(net), 
                 igraph::diameter(net), cd$centralization, 
-                cb$centralization, ce$centralization))
+                cb$centralization, ce$centralization, nrow(vertices), nrow(interactions), 
+                inter))
 
 stats <- stats %>% arrange(statistic)
 

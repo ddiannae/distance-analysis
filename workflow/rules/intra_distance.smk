@@ -1,7 +1,7 @@
 rule get_distance_plots:
     input:
-        #config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-count.png",
-        #config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-count.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-count.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-count.png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-"+str(config["distbin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-bychr-"+str(config["distbin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+".png",
@@ -11,16 +11,16 @@ rule get_distance_plots:
     shell:
         "echo done > {output}"
 
-rule get_intra_windows_cout:
+rule get_intra_windows_count:
     input:
-        intra_mi=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-all-distance-mi.tsv"
+        mi_matrix=getMIMatrix
     output:
         tsv=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-interactions-count.tsv",
         plot=config["datadir"]+"/{tissue}/"+config["figdir"]+"/{cond}-intra-interactions-count.png"
     params:
         tissue="{tissue}",
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData"
-    threads: 10
+    threads: 18
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions_count.log"
     script:
@@ -87,13 +87,13 @@ rule get_bins:
         bintype="{bintype}"
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_bins_{bintype}_{binsize}.log" 
-    threads: 8
+    threads: 18
     script:
       "../scripts/binStats.R"
 
-rule get_intra_inter:
+rule get_intra_interactions:
     input:
-        network=getMIMatrix,
+        mi_matrix=getMIMatrix,
         log_file=config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/done.txt"
     output:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-all-distance-mi.tsv"
@@ -102,7 +102,7 @@ rule get_intra_inter:
     params:
         distance_dir=get_distance_dir,
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData"
-    threads: 8
+    threads: 18
     script:
         "../scripts/intraInteractions.R"
 

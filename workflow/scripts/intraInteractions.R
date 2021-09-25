@@ -2,56 +2,46 @@ log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")
 
-library(data.table)
-library(readr)
+library(vroom)
 library(dplyr)
+library(tidyr)
 
 cat("Reading files \n")
-ANNOT_RDATA <- snakemake@params[["annot"]]
-MCCORES <- as.integer(snakemake@threads[[1]])
-COND <- snakemake@params[["cond"]]
 
+ANNOT_RDATA <- snakemake@params[["annot"]]
 load(ANNOT_RDATA)
 
 chrs <- c(as.character(1:22), "X", "Y")
-MImatrix <- fread(file = snakemake@input[["network"]], header = T,  sep = ",", nThread = MCCORES)
-MImatrix <- data.matrix(MImatrix)
-rownames(MImatrix) = colnames(MImatrix)
+MImatrix <- vroom::vroom(snakemake@input[["mi_matrix"]])
+genes <- colnames(MImatrix)
+
 cat("MI matrix with ", nrow(MImatrix), " rows and ", ncol(MImatrix), " columns loaded \n")
-annot <- annot %>% filter(gene_id %in% colnames(MImatrix))
+MImatrix$source <- genes
 
-## Intra-chromosomal interaction pairs
-## calculates distance between each pair of genes in the form:
-## gene1[start] - gene2[start]
-distvals <- lapply(X = chrs, FUN = function(ch) {
-  cat("Working with chromosome", ch, "\n")
-  genes_annot <- annot %>% filter(chr == ch)
-  genes <- genes_annot$gene_id
-  ngenes <- length(genes)
+cat("Getting intra-chromosomal interactions\n")
+mi_vals <- MImatrix %>% pivot_longer(cols = starts_with("ENSG"), 
+                                     names_to = "target",
+                                     values_to = "mi",
+                                     values_drop_na = TRUE) %>% 
+  arrange(desc(mi)) %>% 
+  left_join(annot %>% dplyr::select(gene_id, chr, start), 
+            by = c("source" = "gene_id")) %>% 
+  rename("source_chr" = "chr", "source_start" = "start") %>%
+  left_join(annot %>% dplyr::select(gene_id, chr, start), 
+            by = c("target" = "gene_id")) %>% 
+  rename("target_chr" = "chr", "target_start" = "start") %>%
+  mutate(interaction = ifelse(source_chr == target_chr, "intra", "inter"),
+         nrow = row_number())
+rm(MImatrix)
 
-  if(ngenes > 0) {
-    chrvals <- parallel::mclapply(X = 1:(ngenes-1), mc.cores = MCCORES,  mc.cleanup = T, FUN = function(i) {
-    #chrvals <-lapply(1:(ngenes-1), function(i) {
-    #  cat(i)
-      gene1 <- genes[i]
-      s1 <- genes_annot %>% filter(gene_id == gene1) %>% pull(start)
-      other.genes <- genes[(i+1):ngenes]
-      mivals <- lapply(X = other.genes,
-                       FUN = function(gene2) {
-                         s2 <- genes_annot %>% filter(gene_id == gene2) %>% pull(start)
-                         list(source = gene1, target = gene2,
-                              distance = max(s2, s1) - min(s2, s1),
-                              mi = max(MImatrix[gene1, gene2], MImatrix[gene2, gene1],  na.rm = T))
-                       })
-      return(bind_rows(mivals))
-    })
-    chrdf <- bind_rows(chrvals)
-    chrdf$chr <- ch
-    return(chrdf)
-  }
-})
+annot <- annot %>% filter(gene_id %in% genes)
 
-distvals <- bind_rows(distvals)
-distvals$cond <- COND
+cat("Calculating distance between genes\n")
+mi_vals <- mi_vals %>% filter(interaction == "intra") %>% 
+  mutate(distance = pmax(source_start, target_start) - 
+           pmin(source_start, target_start)) %>% 
+  rename("chr" = "source_chr") %>%
+  select(source, target, distance, mi, chr)
+
 cat("Saving file.\n")
-fwrite(distvals, file = snakemake@output[[1]], row.names = F, col.names = T, sep = "\t", nThread = MCCORES)
+vroom::vroom_write(mi_vals, file = snakemake@output[[1]], delim = "\t")

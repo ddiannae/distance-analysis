@@ -23,13 +23,14 @@ rule get_intra_plot:
 
 rule get_intra_inter_count:
     input:
-        mi_matrix=getMIMatrix,
+        mi_matrix=getMIMatrix
     output:
         onek_bins=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-inter-count-onek-bins.tsv",
         log_bins=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-inter-count-log-bins.tsv"
     params:
         cond="{cond}",
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData"
+    threads: 18
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_get_intra_inter_count.log" 
     script:

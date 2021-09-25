@@ -45,7 +45,7 @@ mi_vals %>% mutate(bin = floor(nrow/1000)) %>% group_by(bin) %>%
 
 cat("Saving log bins\n")
 mi_vals %>% mutate(bin_size = 10^floor(log10(nrow))) %>%
-  mutate(bin_size = ifelse(bin_size < 100, 100, bin_size),
+  mutate(bin_size = ifelse(bin_size < 1000, 1000, bin_size),
          bin = (floor(nrow/bin_size)+1)*bin_size) %>% 
   group_by(bin) %>%
   count(interaction) %>% 

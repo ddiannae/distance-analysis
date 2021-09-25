@@ -8,7 +8,7 @@ rule setup_distance_log:
 
 rule setup_network_log:
     output:
-        config["datadir"]+"/{tissue}/network_"+config["algorithm"]+"/log/done.txt"
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/done.txt"
     shell:
         """
         touch {output}

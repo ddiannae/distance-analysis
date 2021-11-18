@@ -1,7 +1,9 @@
 rule get_distance_plots:
     input:
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-count.png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-count.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-by_window-count.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-by_cytoband-count.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-by_window-count.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-by_cytoband-count.png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-"+str(config["distbin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-bychr-"+str(config["distbin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+".png",
@@ -11,20 +13,22 @@ rule get_distance_plots:
     shell:
         "echo done > {output}"
 
-rule get_intra_windows_count:
+rule get_intra_count:
     input:
         mi_matrix=getMIMatrix
     output:
-        tsv=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-interactions-count.tsv",
-        plot=config["datadir"]+"/{tissue}/"+config["figdir"]+"/{cond}-intra-interactions-count.png"
+        tsv=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-interactions-{intra_region}-count.tsv",
+        plot=config["datadir"]+"/{tissue}/"+config["figdir"]+"/{cond}-intra-interactions-{intra_region}-count.png"
     params:
         tissue="{tissue}",
-        annot=config["datadir"]+"/{tissue}/rdata/annot.RData"
-    threads: 18
+        region_type="{intra_region}",
+        annot=config["datadir"]+"/{tissue}/rdata/annot.RData",
+        annot_cytoband="input/Biomart_Ensembl80_GRCh38_p2_regions.tsv"
+    threads: 18 
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions_count.log"
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions_{intra_region}_count.log"
     script:
-        "../scripts/intraWindowsCount.R"
+        "../scripts/intraInteractionsCount.R"
 
 rule get_bin_distance_plots:
     input:

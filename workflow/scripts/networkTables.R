@@ -11,7 +11,9 @@ COND <- snakemake@params[["cond"]]
 
 cat("Loading files\n")
 load(snakemake@params[["annot"]])
-head(annot)
+cytobands <- vroom::vroom(snakemake@params[["annot_cytobands"]])
+colnames(cytobands) <- c("ensembl", "cytoband")
+
 MImatrix <- vroom::vroom(snakemake@input[["mi_matrix"]])
 genes <- colnames(MImatrix)
 
@@ -43,7 +45,8 @@ sources <- MIvals %>% select(source_ensembl, source_chr, source_start, source_en
 colnames(targets) <- c("ensembl", "chr", "start", "end",  "symbol")
 colnames(sources)  <-  c("ensembl", "chr", "start", "end", "symbol")
 vertices <- bind_rows(targets, sources)
-vertices <- vertices[!duplicated(vertices$ensembl), ]
+vertices <- vertices[!duplicated(vertices$ensembl), ] %>% 
+  left_join(cytobands, by = "ensembl")
 
 MIvals <- MIvals %>% 
   select(source_ensembl, target_ensembl, mi, distance, row_num, interaction_type, cond) %>%

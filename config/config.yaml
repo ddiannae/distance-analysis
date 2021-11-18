@@ -1,5 +1,4 @@
-mccores: 78
-cutoff: 10000
+cutoff: 100000
 datadir: /datos/ot/diana/regulacion-trans
 distdir: distance_analysis
 figdir: distance_plots

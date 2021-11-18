@@ -1,7 +1,14 @@
 rule get_network_plots_output:
     input:
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/comm-diameter-histogram-network-{cutoff}.png",
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/comm-size-histogram-network-{cutoff}.png",
+        #We're not going to use intra-chromosomal communities
+        #config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/communities/comm-diameter-histogram-network-intra-louvain-{cutoff}.png",
+        #config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/communities/comm-size-histogram-network-intra-louvain-{cutoff}.png",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/communities/comm-size-histogram-network-all-louvain-{cutoff}.png",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/communities/comm-size-histogram-network-all-fgreedy-{cutoff}.png",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/communities/comm-size-histogram-network-all-leadeigen-{cutoff}.png",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/communities/comm-size-histogram-network-all-infomap-{cutoff}.png",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/normal-comm-network-all-louvain-{cutoff}.tsv",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/cancer-comm-network-all-louvain-{cutoff}.tsv",
         config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/mi-density-network-{cutoff}.png",
         config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/degree-distribution-{cutoff}.png",
         config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/shared-vertices-{cutoff}.tsv"
@@ -35,10 +42,10 @@ rule get_intra_comms_distance_plots:
         inter_cancer=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/cancer-interactions-{cutoff}.tsv",
         ver_normal=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/normal-vertices-{cutoff}.tsv",
         ver_cancer=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/cancer-vertices-{cutoff}.tsv",
-        comm_normal=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/normal-comm-{cutoff}.tsv",
-        comm_cancer=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/cancer-comm-{cutoff}.tsv"
+        comm_normal=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/normal-comm-intra-{commalg}-{cutoff}.tsv",
+        comm_cancer=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/cancer-comm-intra-{commalg}-{cutoff}.tsv"
     output:
-        expand(config["datadir"]+"/{{tissue}}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/comm-{plotfactor}-{plottype}-network-{{cutoff}}.png", plotfactor=["diameter","meandistance"],plottype=["boxplot","histogram"])
+        expand(config["datadir"]+"/{{tissue}}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/communities/comm-{plotfactor}-{plottype}-network-intra-{commalg}-{{cutoff}}.png", commalg=["louvain","fgreedy","infomap", "leadeigen"], plotfactor=["diameter","meandistance"],plottype=["boxplot","histogram"])
     params:
         tissue="{tissue}"
     log:
@@ -46,30 +53,48 @@ rule get_intra_comms_distance_plots:
     script:
         "../scripts/intraCommunitiesDistancePlots.R"
 
-rule get_intra_comms_plots:
+rule get_comms_plots:
     input:
-        comm_info_normal=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/normal-comm-info-{cutoff}.tsv",
-        comm_info_cancer=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/cancer-comm-info-{cutoff}.tsv"
+        comm_info_normal=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/normal-comm-info-{ctype}-{commalg}-{cutoff}.tsv",
+        comm_info_cancer=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/cancer-comm-info-{ctype}-{commalg}-{cutoff}.tsv"
     output:
-        expand(config["datadir"]+"/{{tissue}}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/comm-{plotfactor}-{plottype}-network-{{cutoff}}.png", plotfactor=["order","size", "density"],plottype=["boxplot","histogram"])
+        expand(config["datadir"]+"/{{tissue}}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/communities/comm-{plotfactor}-{plottype}-network-{{ctype}}-{{commalg}}-{{cutoff}}.png", plotfactor=["order","size", "density"],plottype=["boxplot","histogram"])
     params:
         tissue="{tissue}"
     log:
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/intra_communities_{cutoff}_plots.log"
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/communities_{ctype}_{commalg}_{cutoff}_plots.log"
     script:
-        "../scripts/intraCommunitiesStatsPlots.R"
+        "../scripts/communitiesStatsPlots.R"
    
-rule get_intra_comms:
+rule get_comms_net:
+    input:
+        interactions=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-interactions-{cutoff}.tsv",
+        vertices=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-vertices-{cutoff}.tsv",
+        membership=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/{cond}-comm-{ctype}-{commalg}-{cutoff}.tsv"
+    output:
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/{cond}-comm-network-{ctype}-{commalg}-{cutoff}.tsv",
+    params:
+        tissue="{tissue}",
+        cond="{cond}"
+    log:
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/{cond}_communities_network_{ctype}_{commalg}_{cutoff}.log"
+    script:
+        "../scripts/communitiesNetwork.R"
+
+rule get_comms:
     input:
         interactions=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-interactions-{cutoff}.tsv",
         vertices=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-vertices-{cutoff}.tsv"
     output:
-        comm=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-comm-{cutoff}.tsv",
-        comm_info=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-comm-info-{cutoff}.tsv",
+        comm=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/{cond}-comm-{ctype}-{commalg}-{cutoff}.tsv",
+        comm_info=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/{cond}-comm-info-{ctype}-{commalg}-{cutoff}.tsv",
+    params:
+        comm_type="{ctype}",
+        commalg="{commalg}"
     log:
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/{cond}_intra_communities_{cutoff}.log"
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/{cond}_communities_{ctype}_{commalg}_{cutoff}.log"
     script:
-        "../scripts/intraCommunities.R"
+        "../scripts/communities.R"
 
 rule get_degree_distribution_plots:
     input:
@@ -121,9 +146,11 @@ rule get_network_tables:
         interactions=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-interactions-{cutoff}.tsv",
         vertices=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-vertices-{cutoff}.tsv"
     params:
+        annot_cytobands="input/Biomart_Ensembl80_GRCh38_p2_regions.tsv",
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData",
         cutoff="{cutoff}",
         cond="{cond}"
+    threads: 18 
     log:
         config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/{cond}_network_table_{cutoff}.log"
     script:

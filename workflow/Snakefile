@@ -6,11 +6,16 @@ include: "rules/common.smk"
 include: "rules/intra_inter.smk"
 include: "rules/intra_distance.smk"
 include: "rules/network.smk"
+include: "rules/enrichment.smk"
+include: "rules/assortativity.smk"
 
 wildcard_constraints:
     cond="normal|cancer",
     bintype="size|distance|log|onek",
-    binsize="\d+"
+    binsize="\d+",
+    ctype="intra|all",
+    etype="kegg|onco|ncg",
+    commalg="louvain|fgreedy|infomap|leadeigen"
 
 
 rule all:

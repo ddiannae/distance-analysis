@@ -35,6 +35,6 @@ g <- ggplot(fitted_data) +
   ggtitle(TISSUE)
 
 cat("Saving plot\n")
-png(snakemake@output[[1]], width = 1200, height = 600)
+png(snakemake@output[[1]], width =800, height = 450)
 print(g)
 dev.off()  

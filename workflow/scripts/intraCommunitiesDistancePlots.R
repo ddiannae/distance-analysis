@@ -67,7 +67,7 @@ cancer_distances <- getDistances(cancer_inter, cancer_ver, cancer_comms, "cancer
 
 comms <- bind_rows(normal_distances, cancer_distances)
 colors <- c("#e3a098", "#a32e27")
-labels <- c( "Healthy", "Cancer")
+labels <- c( "Normal", "Cancer")
 comms$cond <- factor(comms$cond,   levels = c("normal", "cancer"), labels = labels)
 
 cat("Building diameter boxplot\n")

@@ -20,7 +20,7 @@ mi_data <- lapply(files, function(file) {
 mi_data <- bind_rows(mi_data)
 
 cat("Building plot\n")
-mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Healthy", "Cancer"))
+mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Normal", "Cancer"))
 mi_data$chr <- factor(mi_data$chr, levels = as.character(c(1:22, "X", "Y")))
 
 chrs <- as.character(c(1:22, "X", "Y"))

@@ -18,7 +18,7 @@ mi_data <- lapply(files, function(file) {
   read_tsv(file)
 })
 mi_data <- bind_rows(mi_data) 
-mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Healthy", "Cancer"))
+mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Normal", "Cancer"))
 
 if(BINTYPE == "onek") {
   mi_data$bin <- mi_data$bin * 1000

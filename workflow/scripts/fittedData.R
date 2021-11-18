@@ -8,7 +8,7 @@ mi_data <- lapply(files, function(file) {
   read_tsv(file)
 })
 mi_data <- bind_rows(mi_data) 
-mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Healthy", "Cancer"))
+mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Normal", "Cancer"))
 
 fitted_data <- mi_data %>% group_by(cond) %>% nest() %>%
   mutate(fit_mean = map(data, ~ loess(mi_mean ~ bin, ., span = 0.2)),

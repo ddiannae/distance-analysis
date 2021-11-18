@@ -11,7 +11,7 @@ mi_data <- lapply(files, function(file) {
   read_tsv(file, col_types = cols(chr = col_character()))
 })
 mi_data <- bind_rows(mi_data)
-mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Healthy", "Cancer"))
+mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Normal", "Cancer"))
 mi_data$chr <- factor(mi_data$chr, levels = as.character(c(1:22, "X", "Y")))
 
 mi_data <- mi_data %>% filter(chr != "Y")

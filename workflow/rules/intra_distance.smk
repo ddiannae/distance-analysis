@@ -68,7 +68,7 @@ rule get_bin_fitted:
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/fitted_bins_{bintype}_all_{binsize}.log" 
     script:
-        "../scripts/fittedData.R"
+        "../scripts/binFitting.R"
 
 rule get_bin_chr_plots:
     input:
@@ -93,7 +93,7 @@ rule get_bin_chr_fitted:
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/fitted_bins_{bintype}_bychr_{binsize}.log" 
     script:
-        "../scripts/fittedDataByChr.R"
+        "../scripts/binFittingByChr.R"
 
 rule get_bins:
     input:

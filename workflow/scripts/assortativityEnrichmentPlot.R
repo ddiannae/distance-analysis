@@ -22,7 +22,6 @@ chr_assortativity <- read_tsv(snakemake@input[["chr_assortativity"]],
 if(COND == "cancer") {
   expr_assortativity <- read_tsv(snakemake@input[["expr_assortativity"]]) %>% 
     select(community_id, diffraction, mean_log_fc)
-  chr_assortativity <- chr_assortativity %>% filter(diffraction < 1)
   
   cat("Joining assortativity files\n")
   assort <- chr_assortativity %>% 
@@ -40,7 +39,8 @@ comm_info <- read_tsv(snakemake@input[["comm_info"]],
             by = c("pg_gene" = "ensembl"))
 
 cat("Getting enrichments\n")
-comm_enrich <- read_tsv(snakemake@input[["enrich"]]) %>% 
+comm_enrich <- read_tsv(snakemake@input[["enrich"]], col_types = cols( p_adjust = col_double())) %>%
+  filter(p_adjust < 1e-10) %>%
   select(id, commun) %>% group_by(commun) %>% 
   tally(name = "nterms") 
 
@@ -81,8 +81,8 @@ if(COND == "cancer") {
          color = "Enriched \nterms") +
     xlab("Chromosomal assortativity") +
     ylab("Expression assortativity") +
-    scale_color_gradient(low="lightblue1", high="steelblue4", breaks = c(0, 20, 40, 60, 80),
-                         limits = c(0, 80), oob = squish) +
+    scale_color_gradient(low="lightblue1", high="steelblue4", breaks = c(0, 10, 20, 30),
+                         limits = c(0, 30), oob = squish) +
     scale_size_continuous(range = c(1, 7), breaks = c(1, 5, 20, 50, 100, 150, 200)) +
     theme(text = element_text(size = 6), 
           axis.title = element_text(size = 6),
@@ -101,8 +101,8 @@ if(COND == "cancer") {
          color = "Enriched \nterms") +
     geom_text(aes(label = ifelse(nterms > TERMS, as.character(symbol), NA)),
               colour = "black", size = 1.3, check_overlap = FALSE, fontface = "bold") +
-    scale_color_gradient(low="lightblue1", high="steelblue4",  breaks = c(0, 20, 40, 60, 80),
-                         limits = c(0, 80), oob = squish) +
+    scale_color_gradient(low="lightblue1", high="steelblue4", breaks = c(0, 10, 20, 30),
+                         limits = c(0, 30), oob = squish) +
     scale_size_continuous(range = c(1, 7), breaks = c(1, 5, 20, 50, 100, 150, 200)) +
    theme_base() +
     theme(text = element_text(size = 6), 

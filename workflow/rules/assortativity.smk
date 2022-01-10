@@ -1,9 +1,7 @@
 rule done_assortativity_plots:
     input:
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/assortativity/cancer-comm-assort-enrich-10_terms-{cutoff}.png",
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/assortativity/normal-comm-assort-enrich-10_terms-{cutoff}.png",
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/assortativity/cancer-comm-assort-enrich-20_terms-{cutoff}.png",
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/assortativity/normal-comm-assort-enrich-20_terms-{cutoff}.png",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/assortativity/cancer-comm-assort-enrich-0_terms-{cutoff}.png",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/assortativity/normal-comm-assort-enrich-0_terms-{cutoff}.png",
     output:
         config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"_plots/assortativity/assort-{cutoff}.txt",
     shell:

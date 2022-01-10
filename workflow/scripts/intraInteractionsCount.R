@@ -58,7 +58,6 @@ all_fractions <- lapply(1:length(tops), function(i) {
   cat("Working with ", tops[i], "top interactions\n")
   mi_top <- mi_vals %>% filter(nrow > max(tops[i-1],0) & nrow <= tops[i])
   intra_fractions <- parallel::mclapply(X = chrs, mc.cores = MCCORES, FUN = function(ch) {
-  #chr_win_fractions <- lapply(chrs, FUN = function(ch) {
     cat("Working with chromosome", ch, "\n")
     mi_top_chr <- mi_top %>% filter(source_chr == ch & target_chr == ch)
     annot_chr <- annot %>% filter(chr == ch)

@@ -8,10 +8,27 @@ rule get_distance_plots:
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-bychr-"+str(config["distbin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-bychr-"+str(config["sizebin"])+".png",
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-intra-interactions-by_cytoband-tresults.tsv",
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-intra-interactions-by_cytoband-tresults.tsv",
     output:
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/intra-plots.txt"
     shell:
         "echo done > {output}"
+
+rule get_intra_null_model:
+    input:
+        mi_matrix=getMIMatrix,
+        intra_count=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-interactions-by_cytoband-count.tsv",
+    output:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-interactions-by_cytoband-tresults.tsv"
+    params:
+        annot=config["datadir"]+"/{tissue}/rdata/annot.RData",
+        annot_cytoband="input/Biomart_Ensembl80_GRCh38_p2_regions.tsv"
+    threads: 36
+    log:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions_by_cytoband_tresults.log"
+    script:
+        "../scripts/intraInteractionsNullModel.R"
 
 rule get_intra_count:
     input:

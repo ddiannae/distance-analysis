@@ -53,7 +53,7 @@ cat("Writing plot data\n")
 
 if(COND == "cancer") {
   plot %>% select(community_id, name = symbol, size = order, intra_fraction, 
-                  chr_assortativity = diffraction_chr, exp_assprtativity = diffraction_exp, 
+                  chr_assortativity = diffraction_chr, expr_assortativity = diffraction_exp, 
                   mean_log_fc, enriched_terms = nterms) %>%
     write_tsv(snakemake@output[["comm_summary"]])
 } else {

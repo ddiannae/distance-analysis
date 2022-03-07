@@ -27,7 +27,7 @@ if(BINTYPE == "onek") {
 colors <- c("#e3a098", "#a32e27")
 
 cat("Building plot\n")
-p <- ggplot(mi_data, aes(y = intra_frac, x = bin, color=cond)) +
+p <- ggplot(mi_data, aes(y = intra_fraction, x = bin, color=cond)) +
   geom_point(size = 2) +
   scale_x_log10(name="Total Interactions" ) +
   theme_bw(base_size = 20) +

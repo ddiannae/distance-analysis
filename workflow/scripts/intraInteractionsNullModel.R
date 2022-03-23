@@ -29,7 +29,7 @@ genes <- colnames(MImatrix)
 MImatrix$source <- genes
 chrs <- c(as.character(1:22), "X", "Y")
 
-## se obtiene el máximo de interacciones y se sacan solo las intra
+## se obtienen solo las intra
 mi_vals <- MImatrix %>% pivot_longer(cols = starts_with("ENSG"), 
                                      names_to = "target",
                                      values_to = "mi",
@@ -73,22 +73,23 @@ all_chrs <- lapply(chrs, function(chr) {
     filter(chr == !!chr & top == !!top) %>% 
     pull(fraction, name = cytoband)
   
-  ## número posible de interacciones por citobanda 
-  ## dados los genes en la matriz de expresión
-  total_cyto <- intra_count %>% 
-    filter(chr == !!chr & top == !!top) %>% 
-    pull(total_inter, name = cytoband)
-  
-  ### se repite n.test veces
-  all_samples <- lapply(1:n_tests, function(i) {
-    sample_intrak <- slice_sample(chr_gene_pairs, n = chr_intra) 
-    sample_intrak$i <- i
-    return(sample_intrak)
-  })
-
-  ## distribución del número de interacciones intra-citobanda obtenidas
-  ## en los tests, por cada citobanda
-  all_samples <- bind_rows(all_samples) %>% 
+  if(length(intra_cyto_count)>0) {
+    ## número posible de interacciones por citobanda 
+    ## dados los genes en la matriz de expresión
+    total_cyto <- intra_count %>% 
+      filter(chr == !!chr & top == !!top) %>% 
+      pull(total_inter, name = cytoband)
+    
+    ### se repite n.test veces
+    all_samples <- lapply(1:n_tests, function(i) {
+      sample_intrak <- slice_sample(chr_gene_pairs, n = chr_intra) 
+      sample_intrak$i <- i
+      return(sample_intrak)
+    })
+    
+    ## distribución del número de interacciones intra-citobanda obtenidas
+    ## en los tests, por cada citobanda
+    all_samples <- bind_rows(all_samples) %>% 
       left_join(annot_chr %>% select(gene_id, cytoband), by = c("source" = "gene_id")) %>%
       left_join(annot_chr %>% select(gene_id, cytoband), by = c("target" = "gene_id"),
                 suffix = c("_source", "_target")) %>%
@@ -96,18 +97,20 @@ all_chrs <- lapply(chrs, function(chr) {
       group_by(cytoband_source, i) %>% tally() %>%
       rename("cytoband" = "cytoband_source", "sample_n" = "n") %>%
       pivot_wider(id_cols = i, names_from = cytoband, values_from = sample_n, values_fill = 0)
-  
-  t_test_results <- lapply(names(intra_cyto_count), function(cyt) {
-    all_samples %>% mutate(across(all_of(cyt))/total_cyto[cyt]) %>%
-      t_test(as.formula(paste(cyt, "~1" )), mu = intra_cyto_count[cyt],   detailed = TRUE)
-  })
-  
-  t_test_results <- bind_rows(t_test_results) %>% clean_names() %>%
-    mutate(chr = chr, mu = intra_cyto_count[y]) %>%
-    rename("cytoband" = "y") %>%
-    select(chr, cytoband, mu, statistic, estimate, conf_low, conf_high, p)
-  
-  return(t_test_results)
+    
+    t_test_results <- lapply(names(intra_cyto_count), function(cyt) {
+      all_samples %>% mutate(across(all_of(cyt))/total_cyto[cyt]) %>%
+        t_test(as.formula(paste(cyt, "~1" )), mu = intra_cyto_count[cyt],   detailed = TRUE)
+    })
+    
+    t_test_results <- bind_rows(t_test_results) %>% clean_names() %>%
+      rename("cytoband" = "y") %>%
+      mutate(chr = chr, mu = intra_cyto_count[cytoband]) %>%
+      select(chr, cytoband, mu, statistic, estimate, conf_low, conf_high, p)
+    
+    return(t_test_results)
+  }
+  NULL
 })
 
 bind_rows(all_chrs)  %>% 

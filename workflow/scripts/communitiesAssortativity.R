@@ -39,7 +39,11 @@ if(COND == "cancer") {
   vertices <- vertices %>% mutate(exp = case_when(log_fc > 0 ~ "up",
                                                   log_fc < 0 ~ "down",
                                                   log_fc == 0 ~ "NA"),
-                                  exp = as.factor(exp))
+                                  exp = as.factor(exp),
+                                  diff_exp = case_when(log_fc >= 1 ~ "up",
+                                                  log_fc <= -1 ~ "down",
+                                                  TRUE ~ "no"),
+                                  diff_exp = as.factor(diff_exp),)
 }
 
 vertices <- vertices %>% 
@@ -54,8 +58,12 @@ write_tsv(chr_assortativity, file = snakemake@output[["chr_assortativity"]])
 ## No expression assortativity for normal tissue
 if(COND == "cancer") {
   exp_summary <- vertices %>% group_by(community) %>%
-    summarise(mean_log_fc= mean(log_fc),
+    summarise(mean_log_fc = mean(log_fc),
               mean_avg_exp  =  mean(ave_expr))
+  
+  diff_exp_summary <- vertices %>% group_by(community, diff_exp) %>% 
+    summarise(n = n(),  mean_log_fc = mean(log_fc)) %>% 
+    mutate(freq = n/sum(n))
   
   exp_assortativity <- getAssortativityByAttr(g, "exp")
   
@@ -63,6 +71,8 @@ if(COND == "cancer") {
     inner_join(exp_summary,  by = c("community_id" = "community")) 
   
   write_tsv(exp_summary, file = snakemake@output[["expr_assortativity"]])  
+  write_tsv(diff_exp_summary, file = snakemake@output[["diff_expr_summary"]])  
 } else {
-  write_tsv(chr_assortativity, file = snakemake@output[["expr_assortativity"]])  
+  write_lines(c("NA"), file = snakemake@output[["expr_assortativity"]])
+  write_lines(c("NA"), file = snakemake@output[["diff_expr_summary"]])  
 }

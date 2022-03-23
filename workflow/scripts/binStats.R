@@ -37,15 +37,15 @@ dfmeans$cond <- COND
 cat("Saving bychr file \n")
 write_tsv(dfmeans, snakemake@output[["by_chr"]])
 
-dist_df <- dist_df %>% arrange(distance)
+dist_df <- dist_df  %>% ungroup() %>% arrange(distance)
 
 cat("Getting all bins stats \n")
 if(BINTYPE == "size") {
-  bins <- seq(1, ceiling(nrow(dist_df)/as.integer(BINSIZE)))
-  dist_df <- dist_df %>% arrange(distance) %>% mutate(id = row_number(), bin = ((id-1)%/%as.integer(BINSIZE)) + 1)
+  dist_df <- dist_df %>% 
+    mutate(id = row_number(), bin = ((id-1)%/%as.integer(BINSIZE)) + 1)
 } else if(BINTYPE == "distance") {
-  bins <- seq(1, ceiling( max(dist_df$distance)/as.integer(BINSIZE)))
-  dist_df <- dist_df %>% arrange(distance) %>% mutate(bin = (distance%/%as.integer(BINSIZE))+1)
+ dist_df <- dist_df %>%
+   mutate(bin = (distance%/%as.integer(BINSIZE))+1)
 }
 
 allmeans <- dist_df %>% group_by(bin) %>% summarise(dist_mean = mean(distance), dist_sd = sd(distance),

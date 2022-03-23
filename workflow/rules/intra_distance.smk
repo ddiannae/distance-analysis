@@ -8,8 +8,9 @@ rule get_distance_plots:
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-bychr-"+str(config["distbin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-bychr-"+str(config["sizebin"])+".png",
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-intra-interactions-by_cytoband-tresults.tsv",
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-intra-interactions-by_cytoband-tresults.tsv",
+        #config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-intra-interactions-by_cytoband-tresults.tsv",
+            #config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-intra-interactions-by_cytoband-tresults.tsv",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/heatmap-bins-size-all-ttests-"+str(config["sizebin"])+".png"
     output:
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/intra-plots.txt"
     shell:
@@ -94,6 +95,35 @@ rule get_bin_chr_fitted:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/fitted_bins_{bintype}_bychr_{binsize}.log" 
     script:
         "../scripts/binFittingByChr.R"
+
+rule get_ttest_heatmap:
+    input:
+        cancer=config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-bins-{bintype}-all-tests-{binsize}.tsv",
+        normal=config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-bins-{bintype}-all-tests-{binsize}.tsv"
+    output:
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/heatmap-bins-{bintype}-all-ttests-{binsize}.png"
+    params:
+        tissue="{tissue}"
+    log:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/heatmap_tests_{bintype}_{binsize}.log" 
+    threads: 18
+    script:
+      "../scripts/heatmapTtest.R"
+
+rule get_bins_tests:
+    input:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-all-distance-mi.tsv"
+    output:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-bins-{bintype}-all-tests-{binsize}.tsv"
+    params:
+        binsize="{binsize}",
+        cond="{cond}",
+        bintype="{bintype}"
+    log:
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_bin_tests_{bintype}_{binsize}.log" 
+    threads: 18
+    script:
+      "../scripts/binTest.R"
 
 rule get_bins:
     input:

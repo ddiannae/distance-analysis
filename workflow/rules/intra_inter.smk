@@ -5,24 +5,26 @@ rule get_intra_inter_plots:
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/intra-inter-count-onek-chunks.png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/intra-inter-count-log-chunks.png",
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-intra-inter-null_model-log-bins.tsv",
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-intra-inter-null_model-log-bins.tsv"
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-intra-inter-null_model-log-bins.tsv",
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-intra-inter-null_model-onek-bins.tsv",
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-intra-inter-null_model-onek-bins.tsv"
     output:
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/intra-inter-plots.txt"
     shell:
         "echo done > {output}"
 
-rule get_intra_inter_null_modelt:
+rule get_intra_inter_null_model:
     input:
         mi_matrix=getMIMatrix,
-        counts=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-inter-count-log-bins.tsv",
+        counts=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-inter-count-{bintype}-bins.tsv",
     output:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-inter-null_model-log-bins.tsv"
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-inter-null_model-{bintype}-bins.tsv"
     params:
         cond="{cond}",
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData"
     threads: 18
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_inter_null-model_log_bins.log" 
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_inter_null-model_{bintype}_bins.log" 
     script:
         "../scripts/interInteractionsNullModel.R"
 

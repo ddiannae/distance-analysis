@@ -4,6 +4,6 @@ distdir: distance_analysis
 figdir: distance_plots
 netdir: network
 distbin: 100000
-sizebin: 50
+sizebin: 1000
 algorithm: aracne
 tissues: ["bladder", "brain", "breast", "colorectal", "esophagus", "kidney", "liver", "lung", "ovary", "pancreas", "prostate", "testis", "thyroid","skin", "uterus"]

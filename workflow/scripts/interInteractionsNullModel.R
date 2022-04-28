@@ -43,13 +43,13 @@ rm(annot)
 n_tests <- 1000
 
 bin_mus <- bin_mus %>%  
-  dplyr::filter(bin <= 5e7) %>% 
+  dplyr::filter(bin <= 4e7) %>% 
   dplyr::select(bin, intra_fraction)
 
 cat("Getting gene lists \n")
 t1 <- Sys.time()
 genes_bin <-  mi_vals %>% 
-  dplyr::filter(bin <= 5e7) %>%
+  dplyr::filter(bin <= 4e7) %>%
   dplyr::group_split(bin) %>%
   purrr::map(~union(.x$source, .x$target))
 t2 <- Sys.time()
@@ -57,7 +57,7 @@ cat("Time to get gene list: ", t2-t1, "\n")
 
 ## No podemos asegurar que todos los genes en un chunk incluyan a los del anterior
 for(i in 2:length(genes_bin)) {
-  genes_bin[[i]] = union(genes_bin[[i]], genes_bin[[i-1]])
+   genes_bin[[i]] = union(genes_bin[[i]], genes_bin[[i-1]])
 }
 
 cat("Getting interactions lists \n")
@@ -94,7 +94,7 @@ all_samples <- purrr::map2(all_samples, bin_mus$bin,
 names(all_samples) <-  bin_mus$bin
 
 cat("Saving ttest statistics \n")
-purrr::map2_df(all_samples, bin_mus$intra_fraction,
+ttests <- purrr::map2_df(all_samples, bin_mus$intra_fraction,
        ~ .x %>% rstatix::t_test(n~1, mu = .y, detailed = TRUE) %>% 
          janitor::clean_names() %>%
          dplyr::select(estimate, conf_low, conf_high, statistic, p) %>%

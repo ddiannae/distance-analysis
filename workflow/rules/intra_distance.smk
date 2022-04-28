@@ -25,7 +25,7 @@ rule get_intra_null_model:
     params:
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData",
         annot_cytoband="input/Biomart_Ensembl80_GRCh38_p2_regions.tsv",
-        ninter=100000,
+        ninter=100000
     threads: 36
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions_by_cytoband_tresults.log"

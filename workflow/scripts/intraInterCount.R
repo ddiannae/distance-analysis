@@ -1,3 +1,10 @@
+## #############################################################
+## This file gets the fraction of intra-chromosomal (and inter-
+## chromosomal) interactions for different thresholds of MI 
+## values, in both accumulated and chunk manners.
+## Input comes directly from the mi matrix.
+################################################################
+
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")

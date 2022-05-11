@@ -1,3 +1,9 @@
+## #############################################################
+## This file builds a normal and cancer heatmap of the p-values 
+## from the wilcoxon tests that compare mi distributions of bins  
+## in a single condition. 
+## Its input comes from the binTest.R script
+################################################################
 library(vroom)
 library(dplyr)
 library(tidyr)

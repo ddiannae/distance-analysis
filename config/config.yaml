@@ -7,3 +7,4 @@ distbin: 100000
 sizebin: 1000
 algorithm: aracne
 tissues: ["bladder", "brain", "breast", "colorectal", "esophagus", "kidney", "liver", "lung", "ovary", "pancreas", "prostate", "testis", "thyroid","skin", "uterus"]
+biomart: /home/dgarcia/Workspace/distance_analysis/input/Biomart_Ensembl80_GRCh38_p2_regions.tsv

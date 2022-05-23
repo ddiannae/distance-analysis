@@ -146,7 +146,7 @@ rule get_network_tables:
         interactions=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-interactions-{cutoff}.tsv",
         vertices=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-vertices-{cutoff}.tsv"
     params:
-        annot_cytobands="input/Biomart_Ensembl80_GRCh38_p2_regions.tsv",
+        annot_cytobands=config["biomart"],
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData",
         cutoff="{cutoff}",
         cond="{cond}"

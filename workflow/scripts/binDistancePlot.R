@@ -35,7 +35,7 @@ g <- ggplot(fitted_data) +
   facet_wrap(~cond, nrow = 1) + 
   xlab("Distance (Mbp)") + 
   ylab("Mutual Information") + 
-  theme_few(base_size = 25) +
+  theme_few(base_size = 30) +
   ylim(c(0,0.1)) +
   scale_fill_manual(values = color_pal) + 
   expand_limits(x = 0, y = 0) +
@@ -45,6 +45,6 @@ g <- ggplot(fitted_data) +
   ggtitle(TISSUE)
 
 cat("Saving plot\n")
-png(snakemake@output[[1]], width =1200, height = 500)
+png(snakemake@output[[1]], width =1200, height = 600)
 print(g)
 dev.off()  

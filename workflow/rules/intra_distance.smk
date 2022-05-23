@@ -1,8 +1,6 @@
 rule get_distance_plots:
     input:
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-by_window-count.png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-by_cytoband-count.png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-by_window-count.png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-by_cytoband-count.png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-"+str(config["distbin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-bychr-"+str(config["distbin"])+".png",
@@ -48,6 +46,8 @@ rule get_intra_count:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions_{intra_region}_count.log"
     script:
         "../scripts/intraInteractionsCount.R"
+
+# Desde aqui, hacia arriba faltan comments en los archivos
 
 rule get_bin_distance_plots:
     input:

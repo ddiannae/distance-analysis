@@ -1,5 +1,5 @@
 ## #############################################################
-## This file performs wilcox.test between mi dristibutions from 
+## This file performs wilcox.test between mi distributions from 
 ## pairs of bins in asingle condition. 
 ## Its input comes from the binStats.R script
 ################################################################

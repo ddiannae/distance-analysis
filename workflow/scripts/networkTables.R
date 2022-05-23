@@ -1,3 +1,8 @@
+################################################################################
+## Script to get interactions and vertices tables to build networks of a 
+## top MI cutoff. The annotations are added from a biomart file 
+## It requires the mi matrix as input.
+###############################################################################
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")
@@ -55,4 +60,3 @@ MIvals <- MIvals %>%
 cat("Saving files\n")
 vroom_write(vertices, file = snakemake@output[["vertices"]])
 vroom_write(MIvals, file = snakemake@output[["interactions"]])
-

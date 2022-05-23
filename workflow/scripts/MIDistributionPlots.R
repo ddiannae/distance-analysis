@@ -1,3 +1,8 @@
+################################################################################
+## Script to get a density plot and a boxplot for the distribution of the MI
+## values from cancer and normal networks
+## It requires interactions files from networkTables.R as input
+###############################################################################
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")

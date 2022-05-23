@@ -1,7 +1,8 @@
 ## #############################################################
-## This file builds   
-## and draws a loess fitted line.
-## Its input comes from the binFittingByChr.R and binStats.R script
+## This file builds a network of communities per condition
+## by counting the links between communities
+## It requires interactions and vertices files from networkTables.R 
+## and membership file from communities.R as input
 ################################################################
 
 log <- file(snakemake@log[[1]], open="wt")

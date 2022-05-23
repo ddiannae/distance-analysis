@@ -1,3 +1,8 @@
+################################################################################
+## Script to calculate network, vertices and interaction attributes, such as 
+## centrality, density, transitivity, number of components, etc using igraph
+## It requires interactions and vertices files from networkTables.R as input
+###############################################################################
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")

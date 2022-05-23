@@ -53,6 +53,7 @@ rule get_intra_comms_distance_plots:
     script:
         "../scripts/intraCommunitiesDistancePlots.R"
 
+### Desde aqui faltan comentarios en los scripts
 rule get_comms_plots:
     input:
         comm_info_normal=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/normal-comm-info-{ctype}-{commalg}-{cutoff}.tsv",

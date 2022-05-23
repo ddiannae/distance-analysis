@@ -4,14 +4,19 @@
 ## in a single condition. 
 ## Its input comes from the binTest.R script
 ################################################################
+
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+
 library(vroom)
 library(dplyr)
 library(tidyr)
 library(ComplexHeatmap)
 library(circlize)
 
-tissue <- snakemake@params[["tissue"]]
-tissue <- paste0(toupper(substring(tissue, 1, 1)), substring(tissue, 2))
+TISSUE <- snakemake@params[["tissue"]]
+TISSUE <- paste0(toupper(substring(TISSUE, 1, 1)), substring(TISSUE, 2))
 
 getHeatmap <- function(ttest_file, title) {
   htcolors <- circlize::colorRamp2(breaks = c(0, 1),
@@ -31,18 +36,18 @@ getHeatmap <- function(ttest_file, title) {
   cat("Building heatmap\n")
   return(Heatmap(ttest_matrix, cluster_rows = FALSE, cluster_columns =  FALSE, show_row_names = F, 
                  show_column_names = F, column_title = title, col = htcolors, name = "p-val", 
-                 heatmap_legend_param = list(legend_height = unit(6, "cm"), 
-                                             title_gp = gpar(fontsize = 18), 
-                                             labels_gp = gpar(fontsize = 18), 
+                 heatmap_legend_param = list(legend_height = unit(8, "cm"), 
+                                             title_gp = gpar(fontsize = 30), 
+                                             labels_gp = gpar(fontsize = 30), 
                                              direction = "vertical"),
-                 column_title_gp = grid::gpar(fontsize = 22)))
+                 column_title_gp = grid::gpar(fontsize = 30)))
   
 }
 
 h1 <- getHeatmap(snakemake@input[["normal"]], "Normal")
 h2 <- getHeatmap(snakemake@input[["cancer"]], "Cancer")
 ht_opt("legend_gap" = unit(2, "cm"))
-png(snakemake@output[[1]], width = 1000, height = 400)
-draw(h1+h2, heatmap_legend_side = "right", annotation_legend_side = "right", merge_legends = TRUE,
-     column_title =  , column_title_gp = gpar(fontsize = 24))
+png(snakemake@output[[1]], width = 1200, height = 600)
+draw(h1+h2, heatmap_legend_side = "left", annotation_legend_side = "left", merge_legends = TRUE,
+     column_title = TISSUE, column_title_gp = gpar(fontsize = 40, fontface = "bold"))
 dev.off()

@@ -15,7 +15,8 @@ wildcard_constraints:
     binsize="\d+",
     ctype="intra|all",
     etype="kegg|onco|ncg",
-    commalg="louvain|fgreedy|infomap|leadeigen"
+    commalg="louvain|fgreedy|infomap|leadeigen",
+    stat="mean|mean_fitted"
 
 
 rule all:

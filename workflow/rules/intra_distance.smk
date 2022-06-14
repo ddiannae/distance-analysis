@@ -2,10 +2,12 @@ rule get_distance_plots:
     input:
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-by_cytoband-count.png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-by_cytoband-count.png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-"+str(config["distbin"])+".png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-bychr-"+str(config["distbin"])+".png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+".png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-"+str(config["distbin"])+"-mean_fitted.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-"+str(config["distbin"])+"-mean.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+"-mean.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+"-mean_fitted.png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-bychr-"+str(config["sizebin"])+".png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-bychr-"+str(config["distbin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/heatmap-bins-size-all-ttests-"+str(config["sizebin"])+".png",
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-intra-interactions-by_cytoband-null_model.tsv",
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-intra-interactions-by_cytoband-null_model.tsv",
@@ -47,17 +49,16 @@ rule get_intra_count:
     script:
         "../scripts/intraInteractionsCount.R"
 
-# Desde aqui, hacia arriba faltan comments en los archivos
-
 rule get_bin_distance_plots:
     input:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/fitted-bins-{bintype}-all-{binsize}.tsv"
     output:
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-{bintype}-{binsize}.png"
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-{bintype}-{binsize}-{stat}.png"
     params:
-        tissue = "{tissue}"
+        tissue = "{tissue}",
+        stat = "{stat}"
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{bintype}_plot_{binsize}.log" 
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{bintype}_plot_{binsize}_{stat}.log" 
     script:
         "../scripts/binDistancePlot.R"
 

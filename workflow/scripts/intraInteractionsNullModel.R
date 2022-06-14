@@ -1,3 +1,11 @@
+## #############################################################
+## This file executes t-tests to evaluate the number of 
+## intra-interactions in a MI threshold versus the number of 
+## possible interactions in a  cytoband. 
+## Its input comes from the MI matrix and the 
+## intraInteractionsCount.R file
+################################################################
+
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")
@@ -52,7 +60,6 @@ rm(MImatrix)
 annot <- annot %>% filter(gene_id %in% genes)
 
 n_tests <- 10000
-
 
 all_chrs <- lapply(chrs, function(chr) {
   cat("\tWorking with chromosome", chr, "\n")

@@ -28,14 +28,13 @@ annot <- annot %>% inner_join(regions, by="ensembl_id")
 rm(regions)
 
 intra_count <- vroom::vroom(snakemake@input[["intra_count"]])
-top <- snakemake@params[["ninter"]]
+top <- as.numeric(snakemake@params[["ninter"]])
 
 MImatrix <- vroom::vroom(snakemake@input[["mi_matrix"]])
 cat("MI matrix with ", nrow(MImatrix), " rows and ", ncol(MImatrix), " columns loaded \n")
 
 genes <- colnames(MImatrix)
 MImatrix$source <- genes
-chrs <- c(as.character(1:22), "X", "Y")
 
 ## se obtienen solo las intra
 mi_vals <- MImatrix %>% pivot_longer(cols = starts_with("ENSG"), 
@@ -59,34 +58,46 @@ rm(MImatrix)
 ## expresión
 annot <- annot %>% filter(gene_id %in% genes)
 
+## Obtenemos el count real y total de las interacciones. 
+## Solamente nos interesan las fracciones maypres a 0.5.
+## sumamos las interacciones vistas y totales
+intra_count <- intra_count %>%
+  filter(top <= !!top) %>%
+  group_by(chr, cytoband) %>%
+  summarise(fraction = sum(fraction), total_inter = sum(total_inter)) %>% 
+  arrange(chr, cytoband) %>%
+  filter(fraction >= 0.5)
+
 n_tests <- 10000
 
-all_chrs <- lapply(chrs, function(chr) {
-  cat("\tWorking with chromosome", chr, "\n")
-  
-  ## sacamos los genes del cromosoma
-  annot_chr <- annot %>% filter(chr == !!chr)
-  
-  ## total de interacciones reales en el cromosoma
-  chr_intra <- mi_vals %>% filter(source_chr == chr & target_chr == chr) %>% nrow()
-  
-  ## combinaciones posibles entre genes del cromosoma
-  chr_gene_pairs <- expand_grid(source = annot_chr$gene_id, 
-                               target = annot_chr$gene_id) %>% 
-                    filter(source != target)
-  
-  ## interacciones reales por citobanda
+all_chrs <- parallel::mclapply(X = unique(intra_count$chr), FUN = function(chr) {
+ 
+  ## interacciones reales por citobanda. Solo nos interesan las mayores de 0.5
   intra_cyto_count <- intra_count %>% 
-    filter(chr == !!chr & top == !!top) %>% 
+    filter(chr == !!chr) %>% 
     pull(fraction, name = cytoband)
-  
-  if(length(intra_cyto_count)>0) {
+
+  if(length(intra_cyto_count) > 0) {
+    cat("\tWorking with chromosome", chr, "\n")
+    
+    ## sacamos los genes del cromosoma
+    annot_chr <- annot %>% filter(chr == !!chr)
+    
+    ## total de interacciones reales en el cromosoma
+    chr_intra <- mi_vals %>% filter(source_chr == chr & target_chr == chr) %>% nrow()
+
+    ## combinaciones posibles entre genes del cromosoma
+    chr_gene_pairs <- expand_grid(source = annot_chr$gene_id, 
+                                  target = annot_chr$gene_id) %>% 
+      filter(source != target)
+
     ## número posible de interacciones por citobanda 
     ## dados los genes en la matriz de expresión
     total_cyto <- intra_count %>% 
-      filter(chr == !!chr & top == !!top) %>% 
+      filter(chr == !!chr) %>% 
       pull(total_inter, name = cytoband)
-    
+
+    cat("Getting samples \n")
     ### se repite n.test veces
     all_samples <- lapply(1:n_tests, function(i) {
       sample_intrak <- slice_sample(chr_gene_pairs, n = chr_intra) 
@@ -94,6 +105,7 @@ all_chrs <- lapply(chrs, function(chr) {
       return(sample_intrak)
     })
     
+    cat("Grupping samples \n")
     ## distribución del número de interacciones intra-citobanda obtenidas
     ## en los tests, por cada citobanda
     all_samples <- bind_rows(all_samples) %>% 
@@ -105,12 +117,14 @@ all_chrs <- lapply(chrs, function(chr) {
       rename("cytoband" = "cytoband_source", "sample_n" = "n") %>%
       pivot_wider(id_cols = i, names_from = cytoband, values_from = sample_n, values_fill = 0)
     
+    cat("Running T tests\n")
     t_test_results <- lapply(names(intra_cyto_count), function(cyt) {
       all_samples %>% mutate(across(all_of(cyt))/total_cyto[cyt]) %>%
-        t_test(as.formula(paste(cyt, "~1" )), mu = intra_cyto_count[cyt],   detailed = TRUE)
+        rstatix::t_test(as.formula(paste(cyt, "~1" )), mu = intra_cyto_count[cyt],   detailed = TRUE)
     })
     
-    t_test_results <- bind_rows(t_test_results) %>% clean_names() %>%
+    t_test_results <- bind_rows(t_test_results) %>% 
+      janitor::clean_names() %>%
       rename("cytoband" = "y") %>%
       mutate(chr = chr, mu = intra_cyto_count[cytoband]) %>%
       select(chr, cytoband, mu, statistic, estimate, conf_low, conf_high, p)
@@ -118,7 +132,7 @@ all_chrs <- lapply(chrs, function(chr) {
     return(t_test_results)
   }
   NULL
-})
+}, mc.cores = 2)
 
 bind_rows(all_chrs)  %>% 
   vroom::vroom_write(snakemake@output[[1]])

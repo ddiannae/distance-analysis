@@ -1,4 +1,4 @@
-## Configfile
+    ## Configfile
 configfile: "config/config.yaml"
 
 include: "rules/setup.smk"
@@ -10,6 +10,7 @@ include: "rules/enrichment.smk"
 include: "rules/assortativity.smk"
 
 wildcard_constraints:
+    cutoff="\d+",
     cond="normal|cancer",
     bintype="size|distance|log|onek",
     binsize="\d+",

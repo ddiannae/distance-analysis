@@ -9,12 +9,12 @@ rule get_all_enrichments:
 
 rule get_other_enrichments:
     input:
-        membership=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/{cond}-comm-{type}-louvain-{cutoff}.tsv",
+        membership=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/{cond}-comm-{ctype}-louvain-{cutoff}.tsv",
         universe=getGeneUniverse
     output:
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/enrichments/{etype}-{cond}-comm-{type}-{cutoff}.tsv",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/enrichments/{etype}-{cond}-comm-{ctype}-{cutoff}.tsv",
     log:
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/{etype}_enrichment_{cond}_{type}_{cutoff}.log"
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/{etype}_enrichment_{cond}_{ctype}_{cutoff}.log"
     params:
         enrich_type="{etype}"
     script:
@@ -22,11 +22,11 @@ rule get_other_enrichments:
 
 rule get_go_enrichments:
     input:
-        membership=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/{cond}-comm-{type}-louvain-{cutoff}.tsv",
+        membership=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/{cond}-comm-{ctype}-louvain-{cutoff}.tsv",
         universe=getGeneUniverse
     output:
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/enrichments/go-{cond}-comm-{type}-{cutoff}.tsv",
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/enrichments/go-{cond}-comm-{ctype}-{cutoff}.tsv",
     log:
-        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/go_enrichment_{cond}_{type}_{cutoff}.log"
+        config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/log/go_enrichment_{cond}_{ctype}_{cutoff}.log"
     script:
         "../scripts/go_enrichments.R"

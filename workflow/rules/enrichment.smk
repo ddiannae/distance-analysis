@@ -1,6 +1,6 @@
 rule get_all_enrichments:
     input:
-        expand(config["datadir"]+"/{{tissue}}/"+config["netdir"]+"_"+config["algorithm"]+"/enrichments/{enrch}-{cond}-comm-all-louvain-{{cutoff}}.tsv",
+        expand(config["datadir"]+"/{{tissue}}/"+config["netdir"]+"_"+config["algorithm"]+"/enrichments/{enrch}-{cond}-comm-all-{{cutoff}}.tsv",
         enrch=["kegg","go","ncg","onco"], cond=["cancer","normal"])
     output:
         config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/enrichments/all-enrichments-{cutoff}.txt"

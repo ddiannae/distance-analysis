@@ -1,3 +1,9 @@
+################################################################################
+## Script to get network communities using an specific algorithm specified in
+## the params. It gets a membership file and a file with community features.
+## It requires interactions and vertices files from networkTables.R as input
+###############################################################################
+
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")

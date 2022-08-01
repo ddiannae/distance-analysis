@@ -1,16 +1,14 @@
 rule get_distance_plots:
     input:
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-by_window-count.png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/cancer-intra-interactions-by_cytoband-count.png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-by_window-count.png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/normal-intra-interactions-by_cytoband-count.png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-"+str(config["distbin"])+".png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-bychr-"+str(config["distbin"])+".png",
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+".png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-"+str(config["distbin"])+"-mean_fitted.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-"+str(config["distbin"])+"-mean.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+"-mean.png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-"+str(config["sizebin"])+"-mean_fitted.png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-size-bychr-"+str(config["sizebin"])+".png",
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-distance-bychr-"+str(config["distbin"])+".png",
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/heatmap-bins-size-all-ttests-"+str(config["sizebin"])+".png",
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-intra-interactions-by_cytoband-null_model.tsv",
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-intra-interactions-by_cytoband-null_model.tsv"
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/cancer-intra-interactions-by_cytoband-null_model-100000.tsv",
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/normal-intra-interactions-by_cytoband-null_model-100000.tsv",
     output:
         config["datadir"]+"/{tissue}/"+config["figdir"]+"/intra-plots.txt"
     shell:
@@ -21,14 +19,14 @@ rule get_intra_null_model:
         mi_matrix=getMIMatrix,
         intra_count=config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-interactions-by_cytoband-count.tsv",
     output:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-interactions-by_cytoband-null_model.tsv"
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/{cond}-intra-interactions-by_cytoband-null_model-{ninter}.tsv"
     params:
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData",
-        annot_cytoband="input/Biomart_Ensembl80_GRCh38_p2_regions.tsv",
-        ninter=100000
+        annot_cytoband=config["biomart"],
+        ninter="{ninter}"
     threads: 36
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions_by_cytoband_tresults.log"
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions_by_cytoband_tresults_{ninter}.log"
     script:
         "../scripts/intraInteractionsNullModel.R"
 
@@ -42,7 +40,7 @@ rule get_intra_count:
         tissue="{tissue}",
         region_type="{intra_region}",
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData",
-        annot_cytoband="input/Biomart_Ensembl80_GRCh38_p2_regions.tsv"
+        annot_cytoband=config["biomart"]
     threads: 18 
     log:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{cond}_intra_interactions_{intra_region}_count.log"
@@ -53,11 +51,12 @@ rule get_bin_distance_plots:
     input:
         config["datadir"]+"/{tissue}/"+config["distdir"]+"/fitted-bins-{bintype}-all-{binsize}.tsv"
     output:
-        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-{bintype}-{binsize}.png"
+        config["datadir"]+"/{tissue}/"+config["figdir"]+"/bin-{bintype}-{binsize}-{stat}.png"
     params:
-        tissue = "{tissue}"
+        tissue = "{tissue}",
+        stat = "{stat}"
     log:
-        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{bintype}_plot_{binsize}.log" 
+        config["datadir"]+"/{tissue}/"+config["distdir"]+"/log/{bintype}_plot_{binsize}_{stat}.log" 
     script:
         "../scripts/binDistancePlot.R"
 

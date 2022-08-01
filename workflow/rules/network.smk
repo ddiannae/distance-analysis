@@ -53,6 +53,7 @@ rule get_intra_comms_distance_plots:
     script:
         "../scripts/intraCommunitiesDistancePlots.R"
 
+### Desde aqui faltan comentarios en los scripts
 rule get_comms_plots:
     input:
         comm_info_normal=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/communities/normal-comm-info-{ctype}-{commalg}-{cutoff}.tsv",
@@ -146,7 +147,7 @@ rule get_network_tables:
         interactions=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-interactions-{cutoff}.tsv",
         vertices=config["datadir"]+"/{tissue}/"+config["netdir"]+"_"+config["algorithm"]+"/{cond}-vertices-{cutoff}.tsv"
     params:
-        annot_cytobands="input/Biomart_Ensembl80_GRCh38_p2_regions.tsv",
+        annot_cytobands=config["biomart"],
         annot=config["datadir"]+"/{tissue}/rdata/annot.RData",
         cutoff="{cutoff}",
         cond="{cond}"

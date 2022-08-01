@@ -1,3 +1,9 @@
+## #############################################################
+## This file performs wilcox.test between mi distributions from 
+## pairs of bins in asingle condition. 
+## Its input comes from the binStats.R script
+################################################################
+
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")
@@ -31,8 +37,6 @@ if(BINTYPE == "size") {
 all_tests <- parallel::mclapply(X=1:(max(dist_df$bin)-2),
                                 mc.cores = MCCORES,
                                 FUN = function(j) {
-# all_tests <-lapply(1:(max(dist_df$bin)-2), 
-#                         function(j) {
   cat("Testing bin ", j, "\n")
   wtest <- lapply((j+1):(max(dist_df$bin)-1), function(i) {
     dist_df %>% 

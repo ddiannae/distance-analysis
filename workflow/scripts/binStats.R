@@ -1,3 +1,13 @@
+## #############################################################
+## This file gets the min mean, median, max, and sd for MI 
+## and distance values per bin, according to the BINSIZE and 
+## BINTYPE variables. Bins are sorted according to the distance 
+## between genes and they can group an amount of intra-interactions 
+## (BINTYPE = size) or windows with a maximum distance 
+## (BINTYPE = distance) per chromosome and in total. 
+## Its input comes from the intraInteractions.R script
+################################################################
+
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")
@@ -15,9 +25,9 @@ cat("Reading data \n")
 dist_df <- read_tsv(snakemake@input[[1]], col_types = cols("chr" = col_character()))
 chrs <- c(as.character(1:22), "X", "Y")
 
-## Gets the mean MI value for a set of gene-pairs
+## 
 ## size of the set in binsize variable.
-## Bins are sorted according to the distance between genes
+## 
 
 if(BINTYPE == "size") {
   dist_df <- dist_df %>% group_by(chr) %>% arrange(distance) %>%

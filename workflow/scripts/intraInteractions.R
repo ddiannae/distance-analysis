@@ -1,3 +1,9 @@
+## #############################################################
+## This file filters the intra-chromosomal interactions and
+## gets the distance in base pairs between each pair of genes
+## Its input comes from the MI matrix.
+################################################################
+
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")

@@ -1,7 +1,18 @@
+## #############################################################
+## This file fits a loess curve to the mean, min, and max values
+## per bin to improve visualization 
+## Its input comes from the binStats.R script
+################################################################
+
+log <- file(snakemake@log[[1]], open="wt")
+sink(log)
+sink(log, type="message")
+
 library(tidyverse)
 library(broom)
 library(ggthemes)
 
+cat("Reading files\n")
 files <- list(snakemake@input[["normal"]], snakemake@input[["cancer"]])
 
 mi_data <- lapply(files, function(file) {
@@ -10,6 +21,7 @@ mi_data <- lapply(files, function(file) {
 mi_data <- bind_rows(mi_data) 
 mi_data$cond <- factor(mi_data$cond, levels = c("normal", "cancer"), labels = c("Normal", "Cancer"))
 
+cat("Fitting data\n")
 fitted_data <- mi_data %>% group_by(cond) %>% nest() %>%
   mutate(fit_mean = map(data, ~ loess(mi_mean ~ bin, ., span = 0.2)),
          fit_max = map(data, ~ loess(mi_max ~ bin, ., span = 0.2)),
@@ -25,4 +37,5 @@ fitted_data <- mi_data %>% group_by(cond) %>% nest() %>%
   ungroup() %>% 
   inner_join(mi_data %>% select(bin, cond, mi_sd, dist_mean))
 
+cat("Writing data\n")
 write_tsv(fitted_data, snakemake@output[[1]])

@@ -1,3 +1,10 @@
+## #############################################################
+## This file counts the fraction of intra-interactions in  
+## multiple top MI tresholds by either distance window or 
+## cytoband. 
+## Its input comes directly from the MI matrix
+################################################################
+
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")

@@ -1,3 +1,8 @@
+## #############################################################
+## This file builds plots for size, order and density 
+## distribution plots for normal and cancer communities. 
+## It requires the community summary file from communities.R as input
+################################################################
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")

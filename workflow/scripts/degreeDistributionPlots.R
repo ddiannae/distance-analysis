@@ -1,3 +1,8 @@
+################################################################################
+## Script get a degree distribution and cumulative degree distribution plot of  
+## cancer an normal networks.
+## It requires the RData files from networStats.R as input
+###############################################################################
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")

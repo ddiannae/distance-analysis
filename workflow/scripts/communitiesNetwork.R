@@ -1,3 +1,10 @@
+## #############################################################
+## This file builds a network of communities per condition
+## by counting the links between communities
+## It requires interactions and vertices files from networkTables.R 
+## and membership file from communities.R as input
+################################################################
+
 log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")
@@ -5,7 +12,6 @@ sink(log, type="message")
 library(readr)
 library(dplyr)
 library(tidyr)
-
 
 COND <- snakemake@params[["cond"]]
 TISSUE <- snakemake@params[["tissue"]]
@@ -29,8 +35,7 @@ interactions <- interactions %>% select(source_comm, target_comm) %>%
 interactions_by_communities <-interactions %>% group_by(id) %>% tally()
 interactions_by_communities <- interactions_by_communities %>% 
   separate(id, into = c("source", "target")) %>%
-  mutate(source = paste0(TISSUE, "_", source), target = paste0(TISSUE, "_", target)) %>% 
-  filter(source != target)
+  mutate(source = paste0(TISSUE, "_", source), target = paste0(TISSUE, "_", target))
 
 cat("Saving files\n")
 write_tsv(interactions_by_communities, file = snakemake@output[[1]])  
